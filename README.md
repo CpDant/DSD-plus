@@ -1,5 +1,5 @@
 # Development of a Software Library and Web Application for Rule-based Data Smell Detection
-This is the bachelor-thesis repository of Laura Geiger and Martin Kerschbaumer.
+Repository fo the project made for Software Engineering for AI master degree course at [University of Salerno](https://www.unisa.it/).
 ## Setup Server
 It is assumed that all the following steps are executed inside the root directory of this project.
 ### Setup with Docker
