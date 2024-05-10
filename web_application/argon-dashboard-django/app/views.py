@@ -349,7 +349,7 @@ def result(request):
             for v in value:
                 data_smell_t = SmellType.objects.get(smell_type=v.data_smell_type.value)
                 DetectedSmell.objects.create(data_smell_type=data_smell_t, total_element_count=v.statistics.total_element_count, faulty_element_count=v.statistics.faulty_element_count, faulty_list=v.faulty_elements, belonging_column=column1)
-        
+
         context['column_names'] = column_names
         context['results'] = sorted_results
         context['file'] = file1.file_name
@@ -421,8 +421,26 @@ def saved(request):
         context['parameter_dict'] = parameter_dict
         results[f.file_name] = sorted_results
 
-    context['results'] = results
+        dataset_smells = results[f.file_name]
+        global_faulty_element_count = 0
+        global_total_element_count = 0
+        for key, value in dataset_smells.items():
+            print(key.column_name)
+            for smell in value:
+                if smell.data_smell_type.smell_type == "Missing Value Smell":
+                    global_faulty_element_count += smell.faulty_element_count
+                    global_total_element_count += smell.total_element_count
+            
+                    completeness = (smell.faulty_element_count / smell.total_element_count) * 100
+                    print(f"Faulty elements count: {smell.faulty_element_count}\nTotal Elements count: {smell.total_element_count}\nCalculated Completeness: {completeness:0.2f}")
+                
+                # Table values for smells table   
+                #print(smell.data_smell_type.smell_type, smell.total_element_count, smell.faulty_element_count, smell.faulty_list)
+        global_completeness = (global_faulty_element_count/ global_total_element_count) * 100
+        print(f"Global completeness: {global_completeness:.2f}")
 
+
+    context['results'] = results
     return render(request, 'saved.html', context)
 
 # Remove row indexes 
