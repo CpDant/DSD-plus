@@ -9,7 +9,7 @@ from great_expectations.validator.validator import (
     ExpectationValidationResult
 )
 
-from datasmelldetection.core.detector import (
+from data_smell_detection.datasmelldetection.core.detector import (
     DetectionResult,
     DetectionStatistics
 )

@@ -7,7 +7,7 @@ from great_expectations.exceptions import InvalidExpectationConfigurationError
 from great_expectations.expectations.expectation import Expectation
 from great_expectations.profile.base import ProfilerDataType
 
-from datasmelldetection.core.datasmells import DataSmellType
+from data_smell_detection.datasmelldetection.core.datasmells import DataSmellType
 
 
 @dataclass

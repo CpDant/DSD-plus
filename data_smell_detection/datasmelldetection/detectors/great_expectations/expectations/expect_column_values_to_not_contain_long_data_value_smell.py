@@ -1,8 +1,8 @@
 from typing import Optional, Iterable, Dict, Any, List
 import re
 
-from datasmelldetection.core import DataSmellType
-from datasmelldetection.detectors.great_expectations.datasmell import DataSmell, DataSmellMetadata
+from data_smell_detection.datasmelldetection.core import DataSmellType
+from data_smell_detection.datasmelldetection.detectors.great_expectations.datasmell import DataSmell, DataSmellMetadata
 
 from great_expectations.core.expectation_configuration import ExpectationConfiguration
 from great_expectations.execution_engine import ExecutionEngine, PandasExecutionEngine
