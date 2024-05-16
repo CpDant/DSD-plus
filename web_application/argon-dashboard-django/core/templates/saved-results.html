@@ -1,0 +1,45 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Dashboard {% endblock title %}
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+{% block content %}
+<!-- Header -->
+<div class="header bg-gradient-primary pb-8 pt-5 pt-md-8">
+   <div class="container-fluid">
+      <div class="header-body">
+      </div>
+   </div>
+</div>
+<div class="container-fluid mt--7">
+    <div class="card shadow" style="height: 750px; margin-top: -50px">
+        <div class="card-header bg-transparent">
+            <h3 class="mb-0">Detected Smell Results By File Names</h3>
+            <p>On this page you can see all previously analyzed files ordered by name. If you want to see more informations about analysis, click on the card with the name of your dataset!</p>
+        </div>
+        <div class="card-body" style="overflow-y: scroll;">
+            {% if not files %}
+                <p>There aren't any saved detection results.</p>
+            {% else %}
+                {% for file in files%}
+                    <div class = "card">
+                        <div class = "card-body" style = "border: 1px solid lightgrey; border-radius: 5px;">
+                            <form action="/filesmells" method="POST">
+                                {% csrf_token %}
+                                <div class = "d-flex justify-content-between">
+                                    <h1 class="align-middle">{{ file.file_name }}</h1>
+                                    <input type="hidden" value="{{ file.file_name }}" name = "filename">
+                                    <button type="submit" class="btn btn-primary align-middle">See Detected Smells</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <br>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}{% endblock javascripts %}
+

@@ -378,6 +378,21 @@ def saved(request):
 
     # Some presettings for data smell detection
     context = {}
+    current_user_id = request.user.id if request.user.is_authenticated else dummy_user.id
+
+    files = File.objects.all().filter(user_id=current_user_id).order_by('-uploaded_time')
+    context['files'] = files
+    return render(request, 'saved-results.html', context)
+
+# Datasmells info is only available for logged in users
+@login_required
+def file_smells(request):
+    dummy_user, c = User.objects.get_or_create(username="dummy_user")
+    #filename = request.POST.get("filename")[:-4]       # removes '.csv' from filename
+    filename = request.POST.get("filename")
+    context = {}
+
+    # Presettings for data smell detection
     outer = os.path.join(os.getcwd(), "../")
     context_builder = GreatExpectationsContextBuilder(
         os.path.join(outer, "../great_expectations"),
@@ -387,16 +402,12 @@ def saved(request):
     manager = FileBasedDatasetManager(context=con)
 
     current_user_id = request.user.id if request.user.is_authenticated else dummy_user.id
+    files = File.objects.all().filter(user_id=current_user_id, file_name=filename).order_by('-uploaded_time')
 
-    # Order files to see latest results on top
-    files = File.objects.all().filter(user_id=current_user_id).order_by('-uploaded_time')
-    
     # Create dict for parameters
     parameter_dict = {}
     results = {}
-    completeness_map = {}
-    uniqueness_map = {}
-    validity_map = {}
+    completeness_values, uniqueness_values, validity_values = {}, {}, {}
     for f in files:
         all_columns = list(Column.objects.all().filter(belonging_file=f))
         all_smells_for_file = []
@@ -424,13 +435,16 @@ def saved(request):
         context['parameter_dict'] = parameter_dict
         results[f.file_name] = sorted_results
 
-        completeness_map[f.file_name] = calculate_completeness(results[f.file_name])
-        uniqueness_map[f.file_name] = calculate_uniqueness(results[f.file_name])
-        validity_map[f.file_name] = calculate_validity(results[f.file_name])
+        completeness_values = calculate_completeness(results[f.file_name])
+        uniqueness_values = calculate_uniqueness(results[f.file_name])
+        validity_values = calculate_validity(results[f.file_name])
 
-    print(completeness_map, uniqueness_map, validity_map)
     context['results'] = results
-    return render(request, 'saved.html', context)
+    context['filename'] = filename
+    context['completeness_values'] = completeness_values
+    context['uniqueness_values'] = uniqueness_values
+    context['validity_values'] = validity_values
+    return render(request, 'file-smells.html', context)
 
 # Remove row indexes 
 def precheck_columns(columns):
@@ -449,32 +463,50 @@ def get_item(dictionary, key):
 # Calculate global and single columns completeness
 def calculate_completeness(datasmells):
     completeness_map = {}
+    global_elements, global_faulty_elements = 0, 0
     for key, value in datasmells.items():
         for smell in value:
             if smell.data_smell_type.smell_type == "Missing Value Smell":
                 completeness = ((smell.total_element_count - smell.faulty_element_count) / smell.total_element_count) * 100
                 completeness_map[key.column_name] = completeness
 
+                global_faulty_elements += smell.faulty_element_count
+
+    global_elements = len(datasmells.items()) * list(datasmells.values())[0][0].total_element_count
+    global_completeness = ((global_elements - global_faulty_elements) / global_elements) * 100
+    completeness_map["GLOBAL_COMPLETENESS"] = round(global_completeness, 2)
     return completeness_map
 
 # Calculate global and single columns uniqueness
 def calculate_uniqueness(datasmells):
     uniqueness_map = {}
+    global_elements, global_faulty_elements = 0, 0
     for key, value in datasmells.items():
         for smell in value:
             if smell.data_smell_type.smell_type == "Duplicated Value Smell":
                 uniqueness = ((smell.total_element_count - smell.faulty_element_count) / smell.total_element_count) * 100
                 uniqueness_map[key.column_name] = uniqueness
 
+                global_faulty_elements += smell.faulty_element_count
+
+    global_elements = len(datasmells.items()) * list(datasmells.values())[0][0].total_element_count
+    global_uniqueness = ((global_elements - global_faulty_elements) / global_elements) * 100
+    uniqueness_map["GLOBAL_UNIQUENESS"] = round(global_uniqueness, 2)
     return uniqueness_map
 
 # Calculate global and single columns validity
 def calculate_validity(datasmells):
     validity_map = {}
+    global_elements, global_faulty_elements = 0, 0
     for key, value in datasmells.items():
         for smell in value:
             if smell.data_smell_type.smell_type == "Integer As String Smell" or smell.data_smell_type.smell_type == "Floating Point Number As String Smell" or smell.data_smell_type.smell_type == "Integer As Floating Point Number Smell":
-                uniqueness = ((smell.total_element_count - smell.faulty_element_count) / smell.total_element_count) * 100
-                validity_map[key.column_name] = uniqueness
+                validity = ((smell.total_element_count - smell.faulty_element_count) / smell.total_element_count) * 100
+                validity_map[key.column_name] = validity
 
+                global_faulty_elements += smell.faulty_element_count
+
+    global_elements = len(datasmells.items()) * list(datasmells.values())[0][0].total_element_count
+    global_validity = ((global_elements - global_faulty_elements) / global_elements) * 100
+    validity_map["GLOBAL_VALIDITY"] = round(global_validity, 2)
     return validity_map
