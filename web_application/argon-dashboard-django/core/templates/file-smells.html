@@ -1,0 +1,331 @@
+{% extends 'layouts/base.html' %}
+{% block title %} Dashboard {% endblock title %}
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+{% block content %}
+<!-- Header -->
+<div class="header bg-gradient-primary pb-8 pt-5 pt-md-8">
+   <div class="container-fluid">
+      <div class="header-body">
+      </div>
+   </div>
+</div>
+<div class="container-fluid mt--7">
+    <div class="row">
+       <div class="col">
+          <div class="card shadow" style="height: 750px; margin-top: -50px">
+             <div class="card-header bg-transparent">
+                 <h1 class="mb-0">Smell Results for file {{ filename }}</h1>
+                 <p>Click on pills to show their content!</p>
+             </div>
+             <div class="card-body" style="overflow-y: scroll;">
+                 {% for f, smells in results.items %}
+                     <h3>Selected parameters for detected data smells</h3>
+                     <div class="nav-wrapper-doc">
+                         <ul class="nav nav-pills nav-fill flex-column flex-md-row" id="tabs-icons-text" role="tablist">
+                             {% for k in parameter_dict|get_item:filename %}
+                                 <li class="nav-item">
+                                     <a class="nav-link mb-sm-3 mb-md-0" id="option-smell-{{ forloop.counter }}-tab" data-toggle="tab" href="#option-smell-{{ forloop.counter }}" role="tab" aria-selected="false">{{ k }}</a>
+                                 </li>
+                             {% endfor %}
+                         </ul>
+                     </div>
+
+                     <div class="card shadow">
+                         <div class="card-body">
+                             <div class="tab-content" id="option-smell-content">
+                                 {% for k in parameter_dict|get_item:filename %}
+                                    <div class="tab-pane fade" id="option-smell-{{ forloop.counter }}" role="tabpanel" aria-labelledby="option-smell-{{ forloop.counter }}-tab">
+                                        <div class="table-responsive">
+                                            <div>
+                                                <table class="table align-items-center">
+                                                    <thead class="thead-light">
+                                                        <tr>
+                                                            <th scope="col">
+                                                                {{k}}
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="list">
+                                                        <tr>
+                                                            <td class="type">
+                                                               {% if parameter_dict|get_item:f|get_item:k %}
+                                                                   {% for p in parameter_dict|get_item:f|get_item:k %}
+                                                                        {{ p.name  }}: {{p.value }}<br>
+                                                                   {% endfor %}
+                                                               {% else %}
+                                                               -
+                                                               {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                 {% endfor %}
+                             </div>
+                         </div>
+                     </div>
+
+                     <h3>Columns with data smells</h3>
+                     <div class="nav-wrapper-doc">
+                         <ul class="nav nav-pills nav-fill flex-column flex-md-row" id="tabs-smells" role="tablist">
+                             {% for column, smell in smells.items %}
+                                 {% if smell %}
+                                     <li class="nav-item">
+                                         <a class="nav-link mb-sm-3 mb-md-0" id="column-smell-pill-{{ forloop.counter }}" data-toggle="tab" href="#column-smell-tab-{{ forloop.counter }}" role="tab" aria-selected="false">{{ column.column_name }}</a>
+                                     </li>
+                                 {% endif %}
+                             {% endfor %}
+                         </ul>
+                     </div>
+
+                     <div class="card shadow">
+                         <div class="card-body">
+                             <div class="tab-content" id="smells-tab-content">
+                                {% for column, smell in smells.items %}
+                                    {% if smell %}
+                                        <div class="tab-pane fade" id="column-smell-tab-{{ forloop.counter }}" role="tabpanel" aria-labelledby="column-smell-pill-{{ forloop.counter }}">
+                                            <div class="table-responsive">
+                                               <div>
+                                                  <table class="table align-items-center">
+                                                     <thead class="thead-light">
+                                                        <tr>
+                                                           <th scope="col">
+                                                              Data Smell Type
+                                                           </th>
+                                                           <th scope="col">
+                                                              Total Element Count
+                                                           </th>
+                                                           <th scope="col">
+                                                              Faulty Element Count
+                                                           </th>
+                                                           <th scope="col">
+                                                              Faulty Element Overview
+                                                           </th>
+                                                        </tr>
+                                                     </thead>
+                                                     {% for s in smell%}
+                                                         <tbody class="list">
+                                                            <tr>
+                                                               <td class="type">
+                                                                  {{ s.data_smell_type.smell_type }}
+                                                               </td>
+                                                               <td class="total">
+                                                                  {{ s.total_element_count }}
+                                                               </td>
+                                                               <td class="faulty">
+                                                                  {{ s.faulty_element_count }}
+                                                               </td>
+                                                               <td class="faulty">
+                                                                  {{ s.faulty_list }}
+                                                               </td>
+                                                            </tr>
+                                                         </tbody>
+                                                     {% endfor %}
+                                                  </table>
+                                               </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                             </div>
+                         </div>
+                     </div>
+
+                     <h3>Data Quality Dimensions Values</h3>
+                     <div class="nav-wrapper-doc">
+                         <ul class="nav nav-pills nav-fill flex-column flex-md-row" id="tabs-icons-text" role="tablist">
+                             <li class="nav-item">
+                                 <a class="nav-link mb-sm-3 mb-md-0" id="dqd-completeness-tab" data-toggle="tab" href="#dqd-completeness" role="tab" aria-selected="false">Completeness</a>
+                             </li>
+                             <li class="nav-item">
+                                 <a class="nav-link mb-sm-3 mb-md-0" id="dqd-uniqueness-tab" data-toggle="tab" href="#dqd-uniqueness" role="tab" aria-selected="false">Uniqueness</a>
+                             </li>
+                             <li class="nav-item">
+                                 <a class="nav-link mb-sm-3 mb-md-0" id="dqd-validity-tab" data-toggle="tab" href="#dqd-validity" role="tab" aria-selected="false">Validity</a>
+                             </li>
+                         </ul>
+                     </div>
+
+                     <div class="card shadow">
+                         <div class="card-body">
+                             <div class="tab-content" id="option-smell-content">
+                                    <div class="tab-pane fade" id="dqd-completeness" role="tabpanel" aria-labelledby="dqd-completeness-tab">
+                                        <h4>Global Completeness</h4>
+                                        {% for key, value in completeness_values.items %}
+                                            {% if key == "GLOBAL_COMPLETENESS" %}
+                                                <p>Global completeness for this dataset: {{ value }}%</p>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        <h4>Completeness by columns:</h4>
+                                        <span id="completeness-data" style="display: none;">{{ completeness_values }}</span>
+                                        <canvas id="completeness-chart" style="width:100%;max-width:700px"></canvas>
+                                    </div>
+                                    <div class="tab-pane fade" id="dqd-uniqueness" role="tabpanel" aria-labelledby="dqd-uniqueness-tab">
+                                        <h4>Global Uniqueness</h4>
+                                        {% for key, value in uniqueness_values.items %}
+                                            {% if key == "GLOBAL_UNIQUENESS" %}
+                                                <p>Global uniqueness for this dataset: {{ value }}%</p>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        <h4>Uniqueness by columns:</h4>
+                                        <span id="uniqueness-data" style="display: none;">{{ uniqueness_values }}</span>
+                                        <canvas id="uniqueness-chart" style="width:100%;max-width:700px"></canvas>
+                                    </div>
+                                    <div class="tab-pane fade" id="dqd-validity" role="tabpanel" aria-labelledby="dqd-validity-tab">
+                                        <h4>Global Validity</h4>
+                                        {% for key, value in validity_values.items %}
+                                            {% if key == "GLOBAL_VALIDITY" %}
+                                                <p>Global validity for this dataset: {{ value }}%</p>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        <h4>Validity by columns:</h4>
+                                        <span id="validity-data" style="display: none;">{{ validity_values }}</span>
+                                        <canvas id="validity-chart" style="width:100%;max-width:700px"></canvas>
+                                    </div>
+                             </div>
+                         </div>
+                     </div>
+
+                     <br>
+                     <div style="text-align: right;">
+                         <form id="test" method="post">
+                             {% csrf_token %}
+                             <button class="btn btn-primary" id="myBtn{{f}}" type="button" data-toggle="modal" data-target="#myModal{{f}}">Delete result</button>
+                             <!-- Modal -->
+                             <div class="modal fade" id="myModal{{f}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                 <div class="modal-dialog modal-dialog-centered" role="document">
+                                     <div class="modal-content">
+                                         <div class="modal-header">
+                                             <h5 class="modal-title" id="exampleModalLabel">Confirm Deletion</h5>
+                                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                 <span aria-hidden="true">&times;</span>
+                                             </button>
+                                         </div>
+                                         <div class="modal-body">
+                                            Delete the file '{{f}}' and its detection results?
+                                         </div>
+                                         <div class="modal-footer">
+                                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                             <button name="del" value={{f}} type="submit" class="btn btn-primary">Delete</button>
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
+                         </form>
+                     </div>
+                     <script>
+                         $(document).ready(function(){
+                            $(".btn").click(function(){
+                                $(this).parent().find('.modal').modal({show:true});
+                            });
+                         });
+                     </script>
+                {% endfor %}
+             </div>
+          </div>
+       </div>
+    </div>
+</div>
+{% endblock content %}
+<!-- Specific JS goes HERE -->
+{% block javascripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <script>
+        //function for generating completeness chart
+        $(document).ready(function(){
+            let completeness_data = $("#completeness-data").text();
+            let dataset = JSON.parse(completeness_data.replaceAll("\'", "\""));
+
+            const colors = [];
+            for (let i = 0; i < Object.keys(dataset).length; i++) {
+              const randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
+              colors.push(randomColor);
+            }
+
+            const myChart = new Chart("completeness-chart", {
+                type: "bar",
+                data: {
+                    labels: Object.keys(dataset),
+                    datasets: [{
+                        backgroundColor: colors,
+                        data: Object.values(dataset)
+                    }]
+                },
+                options: {
+                    legend: {display: false},
+                    scales: {
+                      xAxes: [{ticks: {min: 1, max:10}}],
+                      yAxes: [{ticks: {min: 0, max:100}}],
+                    }
+                }
+            });
+        });
+
+        //function for generating validity chart
+        $(document).ready(function(){
+            let validity_data = $("#validity-data").text();
+            let dataset = JSON.parse(validity_data.replaceAll("\'", "\""));
+
+            const colors = [];
+            for (let i = 0; i < Object.keys(dataset).length; i++) {
+              const randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
+              colors.push(randomColor);
+            }
+
+            const myChart = new Chart("validity-chart", {
+                type: "bar",
+                data: {
+                    labels: Object.keys(dataset),
+                    datasets: [{
+                        backgroundColor: colors,
+                        data: Object.values(dataset)
+                    }]
+                },
+                options: {
+                    legend: {display: false},
+                    scales: {
+                      xAxes: [{ticks: {min: 1, max:10}}],
+                      yAxes: [{ticks: {min: 0, max:100}}],
+                    }
+                }
+            });
+        });
+
+        //function for generating uniqueness chart
+        $(document).ready(function(){
+            let uniqueness_data = $("#uniqueness-data").text();
+            let dataset = JSON.parse(uniqueness_data.replaceAll("\'", "\""));
+
+            const colors = [];
+            for (let i = 0; i < Object.keys(dataset).length; i++) {
+              const randomColor = "#" + Math.floor(Math.random() * 16777215).toString(16);
+              colors.push(randomColor);
+            }
+
+            const myChart = new Chart("uniqueness-chart", {
+                type: "bar",
+                data: {
+                    labels: Object.keys(dataset),
+                    datasets: [{
+                        backgroundColor: colors,
+                        data: Object.values(dataset)
+                    }]
+                },
+                options: {
+                    legend: {display: false},
+                    scales: {
+                      xAxes: [{ticks: {min: 1, max:10}}],
+                      yAxes: [{ticks: {min: 0, max:100}}],
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock javascripts %}
+
