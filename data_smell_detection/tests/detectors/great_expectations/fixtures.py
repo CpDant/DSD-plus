@@ -3,8 +3,8 @@ import pytest
 from copy import deepcopy
 
 # A data smell registry with no smells registered.
-from datasmelldetection.core import DataSmellType
-from datasmelldetection.detectors.great_expectations.datasmell import DataSmellRegistry, \
+from data_smell_detection.datasmelldetection.core import DataSmellType
+from data_smell_detection.datasmelldetection.detectors.great_expectations.datasmell import DataSmellRegistry, \
     DataSmellMetadata
 from great_expectations.profile.base import ProfilerDataType
 

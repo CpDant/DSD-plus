@@ -107,7 +107,7 @@ class DataSmell(ABC):
     smell should be detected is stored too.
     """
 
-    data_smell_metadata: Optional[DataSmellMetadata]
+    data_smell_metadata: Optional[DataSmellMetadata] = None
     """
     Information about the detected data smell detection. This attribute is
     required to perform data smell registration at a

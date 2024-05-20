@@ -2,15 +2,16 @@ import os
 import great_expectations
 from great_expectations.core.batch import BatchRequest
 
-from datasmelldetection.detectors.great_expectations.dataset import FileBasedDatasetManager
-from datasmelldetection.detectors.great_expectations.context import GreatExpectationsContextBuilder
-from datasmelldetection.core import Dataset
+from data_smell_detection.datasmelldetection.detectors.great_expectations.dataset import FileBasedDatasetManager
+from data_smell_detection.datasmelldetection.detectors.great_expectations.context import GreatExpectationsContextBuilder
+from data_smell_detection.datasmelldetection.core import Dataset
 
 cwd = os.getcwd()
+root_path = cwd.split("data_smell_detection")
 
 # NOTE: From view of root directory of package
-_test_data_directory = os.path.join(cwd, "tests/test_sets")
-_test_great_expectations_directory = os.path.join(cwd, "../great_expectations")
+_test_data_directory = root_path[0] + "data_smell_detection/tests/test_sets"
+_test_great_expectations_directory = root_path[0] + "great_expectations"
 context_builder = GreatExpectationsContextBuilder(
     _test_great_expectations_directory,
     _test_data_directory

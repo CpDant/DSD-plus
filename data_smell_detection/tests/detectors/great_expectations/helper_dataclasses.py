@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-from datasmelldetection.detectors.great_expectations.datasmell import DataSmellMetadata
+from data_smell_detection.datasmelldetection.detectors.great_expectations.datasmell import DataSmellMetadata
 
 # General information about a data smell. This dataclass is primarily intended
 # to store information about data smells in order to test their presence in

@@ -1,13 +1,13 @@
-from datasmelldetection.detectors.great_expectations.datasmell import \
+from data_smell_detection.datasmelldetection.detectors.great_expectations.datasmell import \
     DataSmellMetadata
-from datasmelldetection.detectors.great_expectations.datasmell import \
+from data_smell_detection.datasmelldetection.detectors.great_expectations.datasmell import \
     default_registry
 from great_expectations.profile.base import ProfilerDataType
 
-from datasmelldetection.core.datasmells import DataSmellType
+from data_smell_detection.datasmelldetection.core.datasmells import DataSmellType
 # Import great_expectations module to load expectations for
 # data smell detection.
-import datasmelldetection.detectors.great_expectations
+import data_smell_detection.datasmelldetection.detectors.great_expectations
 from .helper_functions import check_data_smell_stored_in_registry
 
 
@@ -71,7 +71,7 @@ class TestExpectationRegistration:
             expectation_type="expect_column_values_to_not_contain_extreme_value_smell"
         )
 
-    def test_expect_column_values_to_not_contain_long_data_value(self):
+    def test_expect_column_values_to_not_contain_long_data_value_smell(self):
         check_data_smell_stored_in_registry(
             registry=default_registry,
             metadata=DataSmellMetadata(
@@ -81,7 +81,7 @@ class TestExpectationRegistration:
             expectation_type="expect_column_values_to_not_contain_long_data_value_smell"
         )
 
-    def test_expect_column_values_to_not_contain_integer_af_floating_point_number_smell(self):
+    def test_expect_column_values_to_not_contain_integer_as_floating_point_number_smell(self):
         check_data_smell_stored_in_registry(
             registry=default_registry,
             metadata=DataSmellMetadata(
