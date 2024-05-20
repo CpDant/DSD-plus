@@ -3,7 +3,7 @@
 from typing import List
 from great_expectations.expectations.expectation import Expectation
 
-from datasmelldetection.detectors.great_expectations.expectations import (
+from data_smell_detection.datasmelldetection.detectors.great_expectations.expectations import (
     ExpectColumnValuesToNotContainSuspectSignSmell,
     ExpectColumnValuesToNotContainIntegerAsStringSmell,
     ExpectColumnValuesToNotContainFloatingPointNumberAsStringSmell,

@@ -4,6 +4,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.template import loader
 from django.http import HttpResponse
 from django import template
+from django.template.response import TemplateResponse
 from django.views.generic import TemplateView
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_protect
@@ -130,7 +131,7 @@ def upload(request):
             # Message if unsupported datatype was uploaded
             context['message'] = 'Upload a .csv file.'
 
-    return render(request, 'index.html', context)
+    return TemplateResponse(request, 'index.html', context)
 
 
 def customize(request):
@@ -289,7 +290,7 @@ def customize(request):
     context['forms_easy'] = forms
     context['doc'] = doc_file
 
-    return render(request, 'customize.html', context)
+    return TemplateResponse(request, 'customize.html', context)
 
 def result(request):
     dummy_user, c = User.objects.get_or_create(username="dummy_user")
@@ -363,7 +364,7 @@ def result(request):
         context['no_result'] = 'No detection result for this user available.'
 
 
-    return render(request, 'results.html', context)
+    return TemplateResponse(request, 'results.html', context)
 
 # Saved view is only available for logged in users
 @login_required
@@ -382,7 +383,7 @@ def saved(request):
 
     files = File.objects.all().filter(user_id=current_user_id).order_by('-uploaded_time')
     context['files'] = files
-    return render(request, 'saved-results.html', context)
+    return TemplateResponse(request, 'saved-results.html', context)
 
 # Datasmells info is only available for logged in users
 @login_required
@@ -444,7 +445,7 @@ def file_smells(request):
     context['completeness_values'] = completeness_values
     context['uniqueness_values'] = uniqueness_values
     context['validity_values'] = validity_values
-    return render(request, 'file-smells.html', context)
+    return TemplateResponse(request, 'file-smells.html', context)
 
 # Remove row indexes 
 def precheck_columns(columns):

@@ -1,6 +1,6 @@
 from great_expectations.profile.base import ProfilerDataType
 
-from datasmelldetection.detectors.great_expectations.datasmell import DataSmellRegistry
+from data_smell_detection.datasmelldetection.detectors.great_expectations.datasmell import DataSmellRegistry, DataSmell
 
 from .helper_functions import (
     check_data_smell_stored_in_registry,
@@ -152,9 +152,5 @@ class TestDataSmellRegistry:
 
 class TestDataSmell:
     def test_is_abstract(self):
-        # TODO
-        pass
+        assert DataSmell.is_abstract() == True
 
-    def test_register_data_smell(self):
-        # TODO
-        pass

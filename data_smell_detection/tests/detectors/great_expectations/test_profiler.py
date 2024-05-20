@@ -3,16 +3,16 @@ from typing import Dict, Set, Any, List, Optional
 from copy import deepcopy
 
 import pytest
-from datasmelldetection.core import DataSmellType
+from data_smell_detection.datasmelldetection.core import DataSmellType
 from great_expectations.core import ExpectationSuite
 from great_expectations.data_asset import DataAsset
 from great_expectations.dataset.pandas_dataset import PandasDataset
 from great_expectations.profile.base import ProfilerDataType
 
-from datasmelldetection.detectors.great_expectations.profiler import DataSmellAwareProfiler
+from data_smell_detection.datasmelldetection.detectors.great_expectations.profiler import DataSmellAwareProfiler
 # Register expectations for data smell detection
-import datasmelldetection.detectors.great_expectations.expectations
-from datasmelldetection.detectors.great_expectations.datasmell import default_registry, \
+import data_smell_detection.datasmelldetection.detectors.great_expectations.expectations
+from data_smell_detection.datasmelldetection.detectors.great_expectations.datasmell import default_registry, \
     DataSmellRegistry
 
 from .fixtures import (

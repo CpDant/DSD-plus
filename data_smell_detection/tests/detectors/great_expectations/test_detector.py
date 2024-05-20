@@ -4,22 +4,22 @@ from typing import List
 
 import pytest
 
-from datasmelldetection.core.detector import (
+from data_smell_detection.datasmelldetection.core.detector import (
     DetectionStatistics,
     DetectionResult
 )
-from datasmelldetection.detectors.great_expectations.context import GreatExpectationsContextBuilder
-from datasmelldetection.detectors.great_expectations.converter import StandardResultConverter
-from datasmelldetection.detectors.great_expectations.dataset import FileBasedDatasetManager
-from datasmelldetection.detectors.great_expectations.datasmell import (
+from data_smell_detection.datasmelldetection.detectors.great_expectations.context import GreatExpectationsContextBuilder
+from data_smell_detection.datasmelldetection.detectors.great_expectations.converter import StandardResultConverter
+from data_smell_detection.datasmelldetection.detectors.great_expectations.dataset import FileBasedDatasetManager
+from data_smell_detection.datasmelldetection.detectors.great_expectations.datasmell import (
     DataSmellRegistry,
     DataSmellType
 )
-from datasmelldetection.detectors.great_expectations.detector import (
+from data_smell_detection.datasmelldetection.detectors.great_expectations.detector import (
     DetectorBuilder,
     DataSmellAwareConfiguration,
 )
-from datasmelldetection.detectors.great_expectations.expectations import (
+from data_smell_detection.datasmelldetection.detectors.great_expectations.expectations import (
     ExpectColumnValuesToNotContainExtremeValueSmell,
     ExpectColumnValuesToNotContainSuspectSignSmell,
     ExpectColumnValuesToNotContainIntegerAsFloatingPointNumberSmell,
@@ -32,10 +32,11 @@ from datasmelldetection.detectors.great_expectations.expectations import (
 from great_expectations.core import ExpectationValidationResult
 
 cwd = os.getcwd()
+root_path = cwd.split("data_smell_detection")
 
 # NOTE: From view of root directory of package
-_test_data_directory = os.path.join(cwd, "tests/test_sets")
-_test_great_expectations_directory = os.path.join(cwd, "../great_expectations")
+_test_data_directory = root_path[0] + "data_smell_detection/tests/test_sets"
+_test_great_expectations_directory = root_path[0] + "great_expectations"
 context_builder = GreatExpectationsContextBuilder(
     _test_great_expectations_directory,
     _test_data_directory
