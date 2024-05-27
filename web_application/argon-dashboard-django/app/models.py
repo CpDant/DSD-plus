@@ -2,10 +2,14 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+class Group(models.Model):
+    group_name = models.CharField(max_length=100, primary_key=True)
+
 class File(models.Model):
     file_name = models.CharField(max_length=255, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    uploaded_time = models.DateTimeField(auto_now_add=True)
+    uploaded_time = models.DateTimeField(auto_now_add=True,)
+    group_name = models.ForeignKey(Group, on_delete=models.CASCADE)
 
 class SmellType(models.Model):
     smell_type = models.CharField(max_length=255, primary_key=True)

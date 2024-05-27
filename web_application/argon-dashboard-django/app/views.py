@@ -2,7 +2,7 @@ from django.template.defaulttags import register
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template import loader
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django import template
 from django.template.response import TemplateResponse
 from django.views.generic import TemplateView
@@ -13,7 +13,7 @@ from .forms import ParameterForm
 import os
 import sys
 import time
-from app.models import File, Column, DetectedSmell, SmellType, Parameter
+from app.models import File, Column, DetectedSmell, SmellType, Parameter, Group
 from app import forms
 from core.settings import SMELL_FOLDER, BASE_DIR, CORE_DIR, LIBRARY_DIR
 from django.contrib.auth.models import User
@@ -75,9 +75,8 @@ def pages(request):
         html_template = loader.get_template( 'page-403.html' )
         return HttpResponse(html_template.render(context, request))
 
-
+@login_required
 def upload(request):
-    dummy_user, c = User.objects.get_or_create(username="dummy_user")
     global all_smells, believability_smells, syntactic_understandability_smells, encoding_understandability_smells, consistency_smells
 
     # Some presettings for data smell detection
@@ -93,14 +92,23 @@ def upload(request):
     # File upload
     if request.method == 'POST' and 'upload' in request.FILES:
         uploaded_file = request.FILES['upload']
+
+        if request.POST['input-group-name'] != "DEFAULT":
+            group_name = request.POST['input-group-name']
+        else:
+            group_name = request.POST['group-selector']
+
         if '.csv' in uploaded_file.name:
             fs = FileSystemStorage()
             file_name = fs.save(uploaded_file.name, uploaded_file)
             context['url'] = fs.url(file_name)   
             context['size'] = fs.size(file_name) / 1000000
 
+            group = Group(group_name=group_name)
+            group.save()
+
             # Save file to database
-            file1 = File(file_name=file_name, user=request.user) if request.user.is_authenticated else File(file_name=file_name, user=dummy_user)
+            file1 = File(file_name=file_name, user=request.user, group_name_id=group_name)
             file1.save()
             
             dataset = manager.get_dataset(file_name)
@@ -133,16 +141,13 @@ def upload(request):
 
     return TemplateResponse(request, 'index.html', context)
 
-
+@login_required
 def customize(request):
-    dummy_user, c = User.objects.get_or_create(username="dummy_user")
     global all_smells, believability_smells, syntactic_understandability_smells, encoding_understandability_smells, consistency_smells
     context = {}
     
-    current_user_id = request.user.id if request.user.is_authenticated else dummy_user.id
-    
     # Get latest file and available smells of current user
-    file1 = File.objects.filter(user_id=current_user_id).latest("uploaded_time")
+    file1 = File.objects.filter(user_id=request.user.id).latest("uploaded_time")
     smells = SmellType.objects.all().filter(belonging_file=file1)
 
     # Get smells for certain file from all smells in order to keep subcategories
@@ -292,9 +297,8 @@ def customize(request):
 
     return TemplateResponse(request, 'customize.html', context)
 
+@login_required
 def result(request):
-    dummy_user, c = User.objects.get_or_create(username="dummy_user")
-
     # Some presettings for data smell detection
     context = {}
     outer = os.path.join(os.getcwd(), "../")
@@ -304,15 +308,11 @@ def result(request):
     )
     con = context_builder.build()
     manager = FileBasedDatasetManager(context=con)
-    
-    if request.user.is_authenticated:
-        current_user_id = request.user.id
-    else:
-        current_user_id = dummy_user.id
+
 
     # Get file for detection
     try:
-        file1 = File.objects.filter(user_id=current_user_id).latest("uploaded_time")
+        file1 = File.objects.filter(user_id=request.user.id).latest("uploaded_time")
         dataset = manager.get_dataset(file1.file_name)
         column_names = [c.column_name for c in list(Column.objects.all().filter(belonging_file=file1))]
         smells = list(SmellType.objects.all().filter(belonging_file=file1))
@@ -369,7 +369,6 @@ def result(request):
 # Saved view is only available for logged in users
 @login_required
 def saved(request):
-    dummy_user, c = User.objects.get_or_create(username="dummy_user")
     if request.method == 'POST':
         file_name = request.POST.get('del')
         try:
@@ -379,18 +378,21 @@ def saved(request):
 
     # Some presettings for data smell detection
     context = {}
-    current_user_id = request.user.id if request.user.is_authenticated else dummy_user.id
+    groups = Group.objects.all()
+    files = File.objects.all().filter(user_id=request.user.id)
+    user_groups = set()
+    for g in groups:
+        for f in files:
+            if f.group_name_id == g.group_name: user_groups.add(g)
 
-    files = File.objects.all().filter(user_id=current_user_id).order_by('-uploaded_time')
-    context['files'] = files
+    context['groups'] = list(user_groups)
     return TemplateResponse(request, 'saved-results.html', context)
 
 # Datasmells info is only available for logged in users
 @login_required
 def file_smells(request):
-    dummy_user, c = User.objects.get_or_create(username="dummy_user")
     #filename = request.POST.get("filename")[:-4]       # removes '.csv' from filename
-    filename = request.POST.get("filename")
+    group_name = request.POST.get("group-name")
     context = {}
 
     # Presettings for data smell detection
@@ -401,9 +403,7 @@ def file_smells(request):
     )
     con = context_builder.build()
     manager = FileBasedDatasetManager(context=con)
-
-    current_user_id = request.user.id if request.user.is_authenticated else dummy_user.id
-    files = File.objects.all().filter(user_id=current_user_id, file_name=filename).order_by('-uploaded_time')
+    files = File.objects.all().filter(user_id=request.user.id, group_name_id=group_name).order_by('uploaded_time')
 
     # Create dict for parameters
     parameter_dict = {}
@@ -414,9 +414,8 @@ def file_smells(request):
         all_smells_for_file = []
         for c in all_columns:
             all_smells_for_file.extend(list(DetectedSmell.objects.all().filter(belonging_column=c)))
-        
+
         sorted_results = {}
-        
         # Delete files which do not have any detected smells
         if not all_smells_for_file:
             File.objects.get(file_name=f.file_name).delete()
@@ -431,23 +430,42 @@ def file_smells(request):
                     sorted_results[c].append(s)
                     s_type = SmellType.objects.get(smell_type=s.data_smell_type.smell_type)
                     smell_dict[s.data_smell_type.smell_type] = list(Parameter.objects.all().filter(belonging_smell=s_type, belonging_file=f))
-                    parameter_dict[f.file_name] = dict(smell_dict)
+                    parameter_dict[f.file_name[:-4]] = dict(smell_dict)
 
         context['parameter_dict'] = parameter_dict
-        results[f.file_name] = sorted_results
+        results[f.file_name[:-4]] = sorted_results
 
-        completeness_values = calculate_completeness(results[f.file_name])
-        uniqueness_values = calculate_uniqueness(results[f.file_name])
-        validity_values = calculate_validity(results[f.file_name])
+        completeness_values[f.file_name[:-4]] = calculate_completeness(sorted_results)
+        uniqueness_values[f.file_name[:-4]] = calculate_uniqueness(sorted_results)
+        validity_values[f.file_name[:-4]] = calculate_validity(sorted_results)
 
     context['results'] = results
-    context['filename'] = filename
+    context['group_name'] = group_name
     context['completeness_values'] = completeness_values
     context['uniqueness_values'] = uniqueness_values
     context['validity_values'] = validity_values
+
+    global_comp, global_uniq, global_val = {}, {}, {}
+    for key, value in completeness_values.items():
+        global_comp[key] = value["GLOBAL_COMPLETENESS"]
+
+    for key, value in uniqueness_values.items():
+        global_uniq[key] = value["GLOBAL_UNIQUENESS"]
+
+    for key, value in validity_values.items():
+        global_val[key] = value["GLOBAL_VALIDITY"]
+
+    context["global_comp"] = global_comp
+    context["global_uniq"] = global_uniq
+    context["global_val"] = global_val
     return TemplateResponse(request, 'file-smells.html', context)
 
-# Remove row indexes 
+def retrieve_groups(request):
+    groups = Group.objects.all()
+    return_list = [g.group_name for g in groups]
+    return JsonResponse({'list': return_list}, status=200, content_type="application/json")
+
+# Remove row indexes
 def precheck_columns(columns):
     if "Unnamed: 0" in columns:
         columns.remove("Unnamed: 0")
@@ -465,15 +483,22 @@ def get_item(dictionary, key):
 def calculate_completeness(datasmells):
     completeness_map = {}
     global_elements, global_faulty_elements = 0, 0
-    for key, value in datasmells.items():
-        for smell in value:
+
+    total_rows, total_columns = 0, len(datasmells.keys())
+    for column, column_smells in datasmells.items():
+        for smell in column_smells:
+            total_rows = smell.total_element_count
+            break
+
+    for column, column_smells in datasmells.items():
+        for smell in column_smells:
             if smell.data_smell_type.smell_type == "Missing Value Smell":
                 completeness = ((smell.total_element_count - smell.faulty_element_count) / smell.total_element_count) * 100
-                completeness_map[key.column_name] = completeness
+                completeness_map[column.column_name] = completeness
 
                 global_faulty_elements += smell.faulty_element_count
 
-    global_elements = len(datasmells.items()) * list(datasmells.values())[0][0].total_element_count
+    global_elements = total_rows * total_columns
     global_completeness = ((global_elements - global_faulty_elements) / global_elements) * 100
     completeness_map["GLOBAL_COMPLETENESS"] = round(global_completeness, 2)
     return completeness_map
@@ -482,15 +507,22 @@ def calculate_completeness(datasmells):
 def calculate_uniqueness(datasmells):
     uniqueness_map = {}
     global_elements, global_faulty_elements = 0, 0
-    for key, value in datasmells.items():
-        for smell in value:
+
+    total_rows, total_columns = 0, len(datasmells.keys())
+    for column, column_smells in datasmells.items():
+        for smell in column_smells:
+            total_rows = smell.total_element_count
+            break
+
+    for column, column_smells in datasmells.items():
+        for smell in column_smells:
             if smell.data_smell_type.smell_type == "Duplicated Value Smell":
                 uniqueness = ((smell.total_element_count - smell.faulty_element_count) / smell.total_element_count) * 100
-                uniqueness_map[key.column_name] = uniqueness
+                uniqueness_map[column.column_name] = uniqueness
 
                 global_faulty_elements += smell.faulty_element_count
 
-    global_elements = len(datasmells.items()) * list(datasmells.values())[0][0].total_element_count
+    global_elements = total_rows * total_columns
     global_uniqueness = ((global_elements - global_faulty_elements) / global_elements) * 100
     uniqueness_map["GLOBAL_UNIQUENESS"] = round(global_uniqueness, 2)
     return uniqueness_map
@@ -499,15 +531,22 @@ def calculate_uniqueness(datasmells):
 def calculate_validity(datasmells):
     validity_map = {}
     global_elements, global_faulty_elements = 0, 0
-    for key, value in datasmells.items():
-        for smell in value:
+
+    total_rows, total_columns = 0, len(datasmells.keys())
+    for column, column_smells in datasmells.items():
+        for smell in column_smells:
+            total_rows = smell.total_element_count
+            break
+
+    for column, column_smells in datasmells.items():
+        for smell in column_smells:
             if smell.data_smell_type.smell_type == "Integer As String Smell" or smell.data_smell_type.smell_type == "Floating Point Number As String Smell" or smell.data_smell_type.smell_type == "Integer As Floating Point Number Smell":
                 validity = ((smell.total_element_count - smell.faulty_element_count) / smell.total_element_count) * 100
-                validity_map[key.column_name] = validity
+                validity_map[column.column_name] = validity
 
                 global_faulty_elements += smell.faulty_element_count
 
-    global_elements = len(datasmells.items()) * list(datasmells.values())[0][0].total_element_count
+    global_elements = total_rows * total_columns
     global_validity = ((global_elements - global_faulty_elements) / global_elements) * 100
     validity_map["GLOBAL_VALIDITY"] = round(global_validity, 2)
     return validity_map
