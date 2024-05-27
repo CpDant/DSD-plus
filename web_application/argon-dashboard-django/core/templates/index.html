@@ -1,110 +1,113 @@
 {% extends 'layouts/base.html' %}
 {% block title %} Dashboard {% endblock title %}
 <!-- Specific CSS goes HERE -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="../static/assets/css/dsd_plus.css">
+{% endblock stylesheets %}
 {% block content %}
 <!-- Header -->
 <div class="header bg-gradient-primary pb-8 pt-5 pt-md-8">
    <div class="container-fluid">
       <div class="header-body">
          <!-- Card stats -->
-         <div class="row">
-            <div class="col-xl-3 col-lg-6">
-               <div class="card card-stats mb-4 mb-xl-0">
-                  <div class="card-body">
-                     <div class="row">
-                        <div class="col">
-                           <span class="h2 font-weight-bold mb-0">Upload file</span>
-                        </div>
-                        <div class="col-auto">
-                           <div class="icon icon-shape bg-upload text-white rounded-circle shadow">
-                              <i class="ni ni-cloud-upload-96"></i>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
+            <div class="row">
+                <div class="col-xl-3 col-lg-6">
+                   <div class="card card-stats mb-4 mb-xl-0">
+                      <div class="card-body">
+                         <div class="row">
+                            <div class="col">
+                               <span class="h2 font-weight-bold mb-0">Upload file</span>
+                            </div>
+                            <div class="col-auto">
+                               <div class="icon icon-shape bg-upload text-white rounded-circle shadow">
+                                  <i class="ni ni-cloud-upload-96"></i>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+                <div class="col-xl-1 col-lg-6">
+                   <div class="card-transparent card-stats mb-4 mb-xl-0">
+                      <div class="card-body-transparent">
+                         <div class="row">
+                            <div class="col-auto">
+                               <div class="icon icon-shape bg-dark text-white rounded-circle shadow">
+                                  <i class="ni ni-bold-right"></i>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+                {% if url %}
+                <div class="col-xl-4 col-lg-6">
+                   <a href="/customize.html">
+                      <div class="card-next card-stats mb-4 mb-xl-0">
+                         <div class="card-body">
+                            <div class="row">
+                               <div class="col">
+                                  <span class="h2 font-weight-bold mb-0">Customize</span>
+                               </div>
+                               <div class="col-auto">
+                                  <div class="icon icon-shape bg-customize text-white rounded-circle shadow">
+                                     <i class="ni ni-ui-04"></i>
+                                  </div>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                   </a>
+                </div>
+                {% else %}
+                <div class="col-xl-4 col-lg-6">
+                   <div class="card-grey card-stats mb-4 mb-xl-0">
+                      <div class="card-body">
+                         <div class="row">
+                            <div class="col">
+                               <span class="h2 font-weight-bold mb-0">Customize</span>
+                            </div>
+                            <div class="col-auto">
+                               <div class="icon icon-shape bg-customize text-white rounded-circle shadow">
+                                  <i class="ni ni-ui-04"></i>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+                {% endif %}
+                <div class="col-xl-1 col-lg-6">
+                   <div class="card-transparent card-stats mb-4 mb-xl-0">
+                      <div class="card-body-transparent">
+                         <div class="row">
+                            <div class="col-auto">
+                               <div class="icon icon-shape bg-dark text-white rounded-circle shadow">
+                                  <i class="ni ni-bold-right"></i>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+                <div class="col-xl-3 col-lg-6">
+                   <div class="card-grey card-stats mb-4 mb-xl-0">
+                      <div class="card-body">
+                         <div class="row">
+                            <div class="col">
+                               <span class="h2 font-weight-bold mb-0">Results</span>
+                            </div>
+                            <div class="col-auto">
+                               <div class="icon icon-shape bg-results text-white rounded-circle shadow">
+                                  <i class="ni ni-chart-bar-32"></i>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
             </div>
-            <div class="col-xl-1 col-lg-6">
-               <div class="card-transparent card-stats mb-4 mb-xl-0">
-                  <div class="card-body-transparent">
-                     <div class="row">
-                        <div class="col-auto">
-                           <div class="icon icon-shape bg-dark text-white rounded-circle shadow">
-                              <i class="ni ni-bold-right"></i>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-            {% if url %}
-            <div class="col-xl-4 col-lg-6">
-               <a href="/customize.html">
-                  <div class="card-next card-stats mb-4 mb-xl-0">
-                     <div class="card-body">
-                        <div class="row">
-                           <div class="col">
-                              <span class="h2 font-weight-bold mb-0">Customize</span>
-                           </div>
-                           <div class="col-auto">
-                              <div class="icon icon-shape bg-customize text-white rounded-circle shadow">
-                                 <i class="ni ni-ui-04"></i>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </a>
-            </div>
-            {% else %}
-            <div class="col-xl-4 col-lg-6">
-               <div class="card-grey card-stats mb-4 mb-xl-0">
-                  <div class="card-body">
-                     <div class="row">
-                        <div class="col">
-                           <span class="h2 font-weight-bold mb-0">Customize</span>
-                        </div>
-                        <div class="col-auto">
-                           <div class="icon icon-shape bg-customize text-white rounded-circle shadow">
-                              <i class="ni ni-ui-04"></i>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-            {% endif %}
-            <div class="col-xl-1 col-lg-6">
-               <div class="card-transparent card-stats mb-4 mb-xl-0">
-                  <div class="card-body-transparent">
-                     <div class="row">
-                        <div class="col-auto">
-                           <div class="icon icon-shape bg-dark text-white rounded-circle shadow">
-                              <i class="ni ni-bold-right"></i>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div class="col-xl-3 col-lg-6">
-               <div class="card-grey card-stats mb-4 mb-xl-0">
-                  <div class="card-body">
-                     <div class="row">
-                        <div class="col">
-                           <span class="h2 font-weight-bold mb-0">Results</span>
-                        </div>
-                        <div class="col-auto">
-                           <div class="icon icon-shape bg-results text-white rounded-circle shadow">
-                              <i class="ni ni-chart-bar-32"></i>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </div>
+
       </div>
    </div>
 </div>
@@ -119,50 +122,57 @@
             <div class="card-body">
                <div class="grid-container"></div>
                <form method="post" enctype="multipart/form-data">
-                  {% csrf_token %}
-                  <div class="file-droppable">
-                     <div><img src="/static/assets/img/theme/csv.png" width="15%" alt="..."><br>
-                        <button class="buttongrey" type="submit"><i class="ni ni-cloud-upload-96"></i> Select file</button>
-                     </div>
-                     <span>&times;</span>
-                     <input type="file" name="upload" />
-                  </div>
-                  <br>
-                  {% if url %}
-                  <div class="alert alert-success alert-dismissible fade show" role="alert">
-                     <span class="alert-inner--icon"><i class="ni ni-like-2"></i></span>
-                     <span class="alert-inner--text"><strong>Success!</strong><br>Uploaded file: {{ url }}
-                     <br>Uploaded file size: {{ size }} Mb</span>
-                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                     <span aria-hidden="true">&times;</span>
-                     </button>
-                  </div>
-                  <div>
-                     <div style="float: left;"> 
-                        <button class="btn btn-primary" type="submit">Upload different file</button>
-                     </div>
-                     <div style="float: right;">
-                        <a href="/customize.html">
-                           <div style="text-align: right;">
-                              <div class="btn btn-primary">
-                                 Next Step
-                              </div>
-                           </div>
-                        </a>
-                     </div>
-                  </div>
-                  {% elif message == 'Upload a .csv file.' %}
-                  <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                     <span class="alert-inner--icon"><i class="ni ni-fat-delete"></i></span>
-                     <span class="alert-inner--text"><strong>Unsupported file type!</strong><br>{{ message }}
-                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                     <span aria-hidden="true">&times;</span>
-                     </button>
-                  </div>
-                  <button class="btn btn-primary" type="submit">Upload file</button>
-                  {% else %}
-                  <button class="btn btn-primary" type="submit">Upload file</button>
-                  {% endif %}
+                    {% csrf_token %}
+                    <div class="text-center" id="select-group-div" style="display: none">
+                        <input class="dsd-input mb-1" type="text" name="input-group-name" value="DEFAULT" placeholder="Select a group name or write here a new one!">
+                        <select class="dsd-select mb-3" id="group-selector" name="group-selector" aria-label="select-group">
+                        </select>
+                    </div>
+                    <div class="file-droppable">
+                        <div>
+                            <img src="/static/assets/img/theme/csv.png" width="15%" alt="...">
+                            <br>
+                            <button class="buttongrey" type="submit"><i class="ni ni-cloud-upload-96"></i> Select file</button>
+                        </div>
+                        <span>&times;</span>
+                        <input type="file" name="upload" />
+                    </div>
+                    <br>
+                    {% if url %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <span class="alert-inner--icon"><i class="ni ni-like-2"></i></span>
+                            <span class="alert-inner--text"><strong>Success!</strong><br>Uploaded file: {{ url }}
+                            <br>Uploaded file size: {{ size }} Mb</span>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div>
+                            <div style="float: left;">
+                                <button class="btn btn-primary" type="submit">Upload different file</button>
+                            </div>
+                            <div style="float: right;">
+                                <a href="/customize.html">
+                                    <div style="text-align: right;">
+                                        <div class="btn btn-primary">
+                                            Next Step
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    {% elif message == 'Upload a .csv file.' %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span class="alert-inner--icon"><i class="ni ni-fat-delete"></i></span>
+                            <span class="alert-inner--text"><strong>Unsupported file type!</strong><br>{{ message }}</span>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <button class="btn btn-primary" type="submit">Upload file</button>
+                    {% else %}
+                        <button class="btn btn-primary" type="submit">Upload file</button>
+                    {% endif %}
                </form>
             </div>
          </div>
@@ -173,4 +183,28 @@
 {% endblock content %}
 <!-- Specific JS goes HERE --> 
 {% block javascripts %}
+    <script>
+        // shows dropdown list with saved groups name in db
+        $(document).ready(function(){
+            $('input[type=file]').change(function(){
+                $.ajax({
+                    url: "/groups",
+                    success: function (data) {
+                        let options = "";
+                        if(data["list"].length === 0){
+                            options += "<option value='none' selected>No groups found</option>";
+                        } else {
+                            for(i = 0; i < data["list"].length; i++) {
+                                let element = data["list"][i];
+                                options += "<option value='" + element + "'>"+ element +"</option>";
+                            }
+                        }
+                        $("#group-selector").append(options);
+                    }
+                });
+                $("#select-group-div").show();
+            });
+        });
+    </script>
+
 {% endblock javascripts %}

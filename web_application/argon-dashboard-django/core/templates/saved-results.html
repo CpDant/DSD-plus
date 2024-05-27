@@ -13,22 +13,22 @@
 <div class="container-fluid mt--7">
     <div class="card shadow" style="height: 750px; margin-top: -50px">
         <div class="card-header bg-transparent">
-            <h3 class="mb-0">Detected Smell Results By File Names</h3>
-            <p>On this page you can see all previously analyzed files ordered by name. If you want to see more informations about analysis, click on the card with the name of your dataset!</p>
+            <h3 class="mb-0">Detected Smell Results By Group Name</h3>
+            <p>On this page you can see all previously analyzed files, grouped by group name. If you want to see more informations about analysis, click on the card with the name of the group and check the results!</p>
         </div>
         <div class="card-body" style="overflow-y: scroll;">
-            {% if not files %}
+            {% if not groups %}
                 <p>There aren't any saved detection results.</p>
             {% else %}
-                {% for file in files%}
+                {% for group in groups%}
                     <div class = "card">
                         <div class = "card-body" style = "border: 1px solid lightgrey; border-radius: 5px;">
                             <form action="/filesmells" method="POST">
                                 {% csrf_token %}
                                 <div class = "d-flex justify-content-between">
-                                    <h1 class="align-middle">{{ file.file_name }}</h1>
-                                    <input type="hidden" value="{{ file.file_name }}" name = "filename">
-                                    <button type="submit" class="btn btn-primary align-middle">See Detected Smells</button>
+                                    <h1 class="align-middle">{{ group.group_name }}</h1>
+                                    <input type="hidden" value="{{ group.group_name }}" name = "group-name">
+                                    <button type="submit" class="btn btn-primary align-middle">See Smells for this group</button>
                                 </div>
                             </form>
                         </div>
