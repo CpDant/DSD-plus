@@ -13,12 +13,12 @@ django.setup()
 
 from .models import File, Column, DetectedSmell, SmellType, Parameter
 from django.contrib.auth.models import User
-from django.test import TestCase, Client, RequestFactory
+from django.test import TestCase, RequestFactory
 from django.urls import reverse 
 from datetime import datetime
-from .views import customize, upload, result, saved
+from .views import customize, upload, result, saved, file_smells
 from .forms import ParameterForm
-from django.template.response import TemplateResponse
+from django.middleware.csrf import get_token
 
 BASE_DIR = Path(__file__).parent
 LIBRARY_DIR = Path(__file__).parent.parent.parent.parent
@@ -160,13 +160,20 @@ class ViewsTest(TestCase):
 
     def test_saved_results(self):
         self.detected_smell = DetectedSmell.objects.create(data_smell_type=self.smell_type1, total_element_count=200, faulty_element_count=10, faulty_list=["hi", "jo", "ho"], belonging_column=self.column1)
-        request = self.factory.post(reverse('saved'))
+        request = self.factory.get('/')
+        request.user = self.user  # Crea o assegna un utente se necessario
+        csrf_token = get_token(request)
+        post_data = {
+            'csrfmiddlewaretoken': csrf_token,
+            'filename': 'test.csv',
+        }
+        request = self.factory.post(reverse('filesmells'), post_data)
         request.user = self.user
-        response = saved(request)
+        response = file_smells(request)
         self.assertEqual(response.context_data['results'], {'test.csv': {self.column1: [self.detected_smell], self.column2: []}})
-        request1 = self.factory.post(reverse('saved'), {'del': [self.file1.file_name]})
+        request1 = self.factory.post(reverse('filesmells'), {'del': [self.file1.file_name]})
         request1.user = self.user
-        response = saved(request1)
+        response = file_smells(request1)
         self.assertEqual(response.context_data['results'], {})
 
 class ParameterFormTest(TestCase):

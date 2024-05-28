@@ -124,7 +124,8 @@ def _generate_per_column_testcases(column_name: str) -> List[Dict[str, Any]]:
             "include_in_gallery": True,
             "in": {
                 "column": column_name,
-                "length_threshold": 30
+                "length_threshold": 30,
+                "mostly": 1
             },
             "out": {
                 "success": False,

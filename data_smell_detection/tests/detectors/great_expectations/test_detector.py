@@ -83,43 +83,43 @@ testcases: List[DetectorTestCase] = [
                 column_name="int1",
                 data_smell_type=DataSmellType.EXTREME_VALUE_SMELL,
                 faulty_elements=[-300],
-                statistics=DetectionStatistics(total_element_count=10, faulty_element_count=1),
+                statistics=DetectionStatistics(total_element_count=11, faulty_element_count=1),
             ),
             DetectionResult(
                 column_name="int1",
                 data_smell_type=DataSmellType.SUSPECT_SIGN_SMELL,
                 faulty_elements=[-300],
-                statistics=DetectionStatistics(total_element_count=10, faulty_element_count=1),
+                statistics=DetectionStatistics(total_element_count=11, faulty_element_count=1),
             ),
             DetectionResult(
                 column_name="float1",
                 data_smell_type=DataSmellType.EXTREME_VALUE_SMELL,
                 faulty_elements=[-300.5],
-                statistics=DetectionStatistics(total_element_count=10, faulty_element_count=1),
+                statistics=DetectionStatistics(total_element_count=11, faulty_element_count=1),
             ),
             DetectionResult(
                 column_name="float1",
                 data_smell_type=DataSmellType.SUSPECT_SIGN_SMELL,
                 faulty_elements=[-300.5],
-                statistics=DetectionStatistics(total_element_count=10, faulty_element_count=1),
+                statistics=DetectionStatistics(total_element_count=11, faulty_element_count=1),
             ),
             DetectionResult(
                 column_name="float2",
                 data_smell_type=DataSmellType.INTEGER_AS_FLOATING_POINT_NUMBER_SMELL,
                 faulty_elements=[1.1, 4.9, 5.1, 8.9, 9.1],
-                statistics=DetectionStatistics(total_element_count=10, faulty_element_count=5),
+                statistics=DetectionStatistics(total_element_count=11, faulty_element_count=5),
             ),
             DetectionResult(
                 column_name="string1",
                 data_smell_type=DataSmellType.LONG_DATA_VALUE_SMELL,
                 faulty_elements=["Pseudopseudohypoparathyroidism"],
-                statistics=DetectionStatistics(total_element_count=10, faulty_element_count=1),
+                statistics=DetectionStatistics(total_element_count=11, faulty_element_count=1),
             ),
             DetectionResult(
                 column_name="string2",
                 data_smell_type=DataSmellType.INTEGER_AS_STRING_SMELL,
                 faulty_elements=["2", "-3", "4", "-5", "6", "-7", "8", "-30", "9", "-10"],
-                statistics=DetectionStatistics(total_element_count=10, faulty_element_count=10),
+                statistics=DetectionStatistics(total_element_count=11, faulty_element_count=10),
             ),
             DetectionResult(
                 column_name="string3",
@@ -136,7 +136,7 @@ testcases: List[DetectorTestCase] = [
                     "-10.2",
                     "11.8"
                 ],
-                statistics=DetectionStatistics(total_element_count=10, faulty_element_count=10),
+                statistics=DetectionStatistics(total_element_count=11, faulty_element_count=10),
             ),
             DetectionResult(
                 column_name="string1",
@@ -149,7 +149,7 @@ testcases: List[DetectorTestCase] = [
                     "all lowercase",
                     "ALL UPPERCASE",
                 ],
-                statistics=DetectionStatistics(total_element_count=10, faulty_element_count=6),
+                statistics=DetectionStatistics(total_element_count=11, faulty_element_count=6),
             ),
             DetectionResult(
                 column_name="string1",
@@ -158,7 +158,7 @@ testcases: List[DetectorTestCase] = [
                     "abc def ghi",
                     "abc def ghi",
                 ],
-                statistics=DetectionStatistics(total_element_count=10, faulty_element_count=2),
+                statistics=DetectionStatistics(total_element_count=11, faulty_element_count=2),
             ),
             DetectionResult(
                 column_name="int2",
@@ -167,7 +167,7 @@ testcases: List[DetectorTestCase] = [
                     8,
                     8
                 ],
-                statistics=DetectionStatistics(total_element_count=10, faulty_element_count=2),
+                statistics=DetectionStatistics(total_element_count=11, faulty_element_count=2),
             )
         ]
     )
@@ -228,13 +228,16 @@ class TestDetectorBuilder:
                 # processed expected DetectionResult. Only compare the the column name,
                 # data smell type and faulty elements
                 def is_match_expected_detection_result(other: DetectionResult):
+                    other_total_element_count = other.statistics.total_element_count
                     other_element_count = other.statistics.faulty_element_count
                     expected_element_count = expected_detection_result.statistics.faulty_element_count
+                    expected_total_element_count = expected_detection_result.statistics.total_element_count
                     expected_faulty_elements = set(expected_detection_result.faulty_elements)
                     return other.column_name == expected_detection_result.column_name and \
                            other.data_smell_type == expected_detection_result.data_smell_type and \
                            other_element_count == expected_element_count and \
-                           expected_faulty_elements == set(other.faulty_elements)
+                           expected_faulty_elements == set(other.faulty_elements) and \
+                           other_total_element_count == expected_total_element_count
 
                 # Ensure a matching DetectionResult object was returned for first testcase
                 assert any(map(is_match_expected_detection_result, detection_results1)), \
