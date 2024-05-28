@@ -9,7 +9,9 @@ from data_smell_detection.datasmelldetection.detectors.great_expectations.expect
     ExpectColumnValuesToNotContainFloatingPointNumberAsStringSmell,
     ExpectColumnValuesToNotContainLongDataValueSmell,
     ExpectColumnValuesToNotContainIntegerAsFloatingPointNumberSmell,
-    ExpectColumnValuesToNotContainCasingSmell
+    ExpectColumnValuesToNotContainCasingSmell, ExpectColumnValuesToNotContainDuplicatedValueSmell,
+    ExpectColumnValuesToNotContainExtremeValueSmell, ExpectColumnValuesToNotContainMissingValueSmell,
+    ExpectColumnValuesToNotContainSpecialCharacterSmell
 )
 
 from .helper_functions import check_expectation_examples
@@ -22,7 +24,13 @@ class TestExpectations:
         ExpectColumnValuesToNotContainFloatingPointNumberAsStringSmell(),
         ExpectColumnValuesToNotContainLongDataValueSmell(),
         ExpectColumnValuesToNotContainIntegerAsFloatingPointNumberSmell(),
-        ExpectColumnValuesToNotContainCasingSmell()
+        ExpectColumnValuesToNotContainCasingSmell(),
+        ExpectColumnValuesToNotContainSpecialCharacterSmell()
+        #TODO Inserire casi di test per questi tre smell specifici
+        #ExpectColumnValuesToNotContainDuplicatedValueSmell(),
+        #ExpectColumnValuesToNotContainExtremeValueSmell(),
+        #ExpectColumnValuesToNotContainMissingValueSmell(),
+
     ]
 
     def test_examples_of_all_expectations(self):
