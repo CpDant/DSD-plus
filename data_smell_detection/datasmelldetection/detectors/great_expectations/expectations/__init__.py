@@ -18,3 +18,5 @@ from .expect_column_values_to_not_contain_duplicated_value_smell import \
     ExpectColumnValuesToNotContainDuplicatedValueSmell
 from.expect_column_values_to_not_contain_special_character_smell import \
     ExpectColumnValuesToNotContainSpecialCharacterSmell
+from .expect_column_to_not_contain_spacing_smell import \
+    ExpectColumnValuesToNotContainSpacingSmell
