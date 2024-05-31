@@ -170,6 +170,10 @@
                               zero.<br><br></p>
                               <h3>Missing Value <b style="color:#26b5d6">Maj</b></h3>
                               <p><em>This smell arises when data instances have no data values.</em><br>Example: 12, 2, 3, , , 4, 55</p>
+                              <h3>Spacing </h3>
+                              <p><em>This smell arises when data values contain an uncommon pattern of spaces (Trailing Space, Leading Spaces, Multiple Spaces, Missing Spaces).</em><br>Example: “John Smith “, " John Smith”, ” John Smith “, "JohnSmith"</p>
+                              <h3>Special Character </h3>
+                              <p><em>This smell occurs when data values contain special characters (non-alphanumeric) like Commas, Dots, Hyphens, Apostrophes, Tab Char, Punctuation, Parentheses, Dashes, accented Letters, etc. </em><br>Example: "Hello, how are you - today", "New.York.", "John's house"</p>
                               <hr>
                               <h2>Currently Unimplemented Smells</h2>
                               <hr>
@@ -185,10 +189,6 @@
                               <p><em>This smell characterizes a situation in which data values contain numeric and alphabetic characters.</em><br>Example: Room 12, 90 Days</p>
                               <h3>Separating</h3>
                               <p><em>This smell arises when data values contain thousands separators (space, underbar, dot etc.) for grouping digits. The usage of delimiters can result in ambiguity when also a decimal separator is used and lead to problems decoding the values.</em><br>Example: 23 432, 21.321, 12 340 000</p>
-                              <h3>Spacing </h3>
-                              <p><em>This smell arises when data values contain an uncommon pattern of spaces (Trailing Space, Leading Spaces, Multiple Spaces, Missing Spaces).</em><br>Example: “John Smith “, " John Smith”, ” John Smith “, "JohnSmith"</p>
-                              <h3>Special Character </h3>
-                              <p><em>This smell occurs when data values contain special characters (non-alphanumeric) like Commas, Dots, Hyphens, Apostrophes, Tab Char, Punctuation, Parentheses, Dashes, accented Letters, etc. </em><br>Example: "Hello, how are you - today", "New.York.", "John's house"</p>
                               <h3>Synonym</h3>
                               <p><em>This smell occurs when data values have the same semantic meaning but are syntactically different (e.g. Aliases, Nick names, Pseudonyms).</em><br>Example: (intelligent, clever, smart), (Bill Clinton, President Clinton, William Jefferson Clinton)</p>
                               <h3>Tagging</h3>
