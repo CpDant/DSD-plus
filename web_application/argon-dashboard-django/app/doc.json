@@ -57,5 +57,17 @@
             "mostly": "The mostly parameter defines that data is valid, if it is above a specific percentage value.",
             "length_threshold": "The minimum number of characters a word must consist of to be considered \"long\". This parameter must be an integer greater than zero."
         }
+    },
+    "Spacing Smell": {
+        "Description": "This smell arises when data values contain an uncommon pattern of spaces (Trailing Space, Leading Spaces, Multiple Spaces, Missing Spaces). Example: ”John Smith ”, ” John Smith”, ” John Smith ”, ”JohnSmith”",
+        "Parameters": {
+            "mostly": "The mostly parameter defines that data is valid, if it is above a specific percentage value."
+        }
+    },
+    "Special Character Smell": {
+        "Description": "This smell occurs when data values contain special characters (non-alphanumeric) like Commas, Dots, Hyphens, Apostrophes, Tab Char, Punctuation, Parentheses, Dashes, accented Letters, etc. Example: ”Hello, how are you - today”, ”New.York.”, ”John's house”",
+        "Parameters": {
+            "mostly": "The mostly parameter defines that data is valid, if it is above a specific percentage value."
+        }
     }
 }
