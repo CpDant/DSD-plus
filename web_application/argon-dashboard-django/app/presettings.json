@@ -31,6 +31,12 @@
 	  },
 	  "Integer As String Smell": {
 		"mostly": 0.01
+	  },
+	  "Spacing Smell": {
+	    "mostly": 0.01
+	  },
+	  "Special Character Smell": {
+	    "mostly": 0.01
 	  }
 	},
 	"medium": {
@@ -65,6 +71,12 @@
 	  },
 	  "Integer As String Smell": {
 		"mostly": 0.1
+	  },
+	  "Spacing Smell": {
+	    "mostly": 0.1
+	  },
+	  "Special Character Smell": {
+	    "mostly": 0.1
 	  }
 	},
 	"strict": {
@@ -99,6 +111,12 @@
 	  },
 	  "Integer As String Smell": {
 		"mostly": 0.2
+	  },
+	  "Spacing Smell": {
+	    "mostly": 0.2
+	  },
+	  "Special Character Smell": {
+	    "mostly": 0.2
 	  }
 	}
   }
