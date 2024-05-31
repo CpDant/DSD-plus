@@ -9,6 +9,9 @@ from django.views.generic import TemplateView
 from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_protect
 from django.core.cache import cache
+
+from data_smell_detection.datasmelldetection.detectors.great_expectations.expectations import \
+    ExpectColumnValuesToNotContainSpacingSmell, ExpectColumnValuesToNotContainSpecialCharacterSmell
 from .forms import ParameterForm
 import os
 import sys
@@ -28,8 +31,7 @@ from datasmelldetection.detectors.great_expectations.profiler import DataSmellAw
 from datasmelldetection.detectors.great_expectations.detector import DataSmellAwareConfiguration
 from datasmelldetection.core.detector import DetectionStatistics, DetectionResult
 from datasmelldetection.core.datasmells import DataSmellType
-from django.contrib import messages 
-
+from django.contrib import messages
 
 # Different smells by its category
 with open(SMELL_FOLDER+'smells.json') as json_file:
@@ -113,6 +115,15 @@ def upload(request):
             
             dataset = manager.get_dataset(file_name)
             detector = DetectorBuilder(context=con, dataset=dataset).build()
+
+            # To add new expections to the default registry, you need to create an instance of every expecation
+            spacing = ExpectColumnValuesToNotContainSpacingSmell()
+            special = ExpectColumnValuesToNotContainSpecialCharacterSmell()
+
+            # Then you can register it into the registry of the detector
+            spacing.register_data_smell(detector.registry)
+            special.register_data_smell(detector.registry)
+
             supported_smells = detector.get_supported_data_smell_types()
             
             # Save supported smell to database
@@ -332,7 +343,15 @@ def result(request):
             column_names=column_names,
             data_smell_configuration=ds_config
         )
-        detector = DetectorBuilder(context=con, dataset=dataset).set_configuration(conf).build() 
+        detector = DetectorBuilder(context=con, dataset=dataset).build()
+
+        #To add new expections to the default registry, you need to create an instance of every expecation
+        spacing = ExpectColumnValuesToNotContainSpacingSmell()
+        special = ExpectColumnValuesToNotContainSpecialCharacterSmell()
+
+        #Then you can register it into the registry of the detector
+        spacing.register_data_smell(detector.registry)
+        special.register_data_smell(detector.registry)
 
         # Detect smells and sort result
         detected_smells = detector.detect()
@@ -360,7 +379,8 @@ def result(request):
             File.objects.get(file_name=file1.file_name).delete()
             context['delete_message'] = 'Result deleted and not viewable in Saved Results.'
 
-    except:
+    except Exception as e:
+        print(e)
         context['no_result'] = 'No detection result for this user available.'
 
 
