@@ -4,8 +4,8 @@ from great_expectations.profile.base import DatasetProfiler
 from great_expectations import DataContext
 from great_expectations.validator.validator import ExpectationSuiteValidationResult
 
-from data_smell_detection.datasmelldetection.core.datasmells import DataSmellType
-from data_smell_detection.datasmelldetection.core.detector import (
+from datasmelldetection.core.datasmells import DataSmellType
+from datasmelldetection.core.detector import (
     ConfigurableDetector,
     DetectionResult, Configuration
 )

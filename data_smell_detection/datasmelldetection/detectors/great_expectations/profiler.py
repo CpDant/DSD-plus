@@ -1,12 +1,12 @@
 from typing import List, Dict, Set, Any
 
 from copy import deepcopy
-from data_smell_detection.datasmelldetection.core import DataSmellType
+from datasmelldetection.core import DataSmellType
 from great_expectations.core import ExpectationConfiguration
 from great_expectations.profile.basic_dataset_profiler import BasicDatasetProfilerBase
 from great_expectations.core.expectation_suite import ExpectationSuite
 
-from data_smell_detection.datasmelldetection.detectors.great_expectations.datasmell import (
+from datasmelldetection.detectors.great_expectations.datasmell import (
     DataSmellRegistry,
     default_registry
 )

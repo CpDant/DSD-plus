@@ -1,8 +1,8 @@
 import json
 from typing import Optional
 
-from data_smell_detection.datasmelldetection.core import DataSmellType
-from data_smell_detection.datasmelldetection.detectors.great_expectations.datasmell import DataSmell, DataSmellMetadata
+from datasmelldetection.core import DataSmellType
+from datasmelldetection.detectors.great_expectations.datasmell import DataSmell, DataSmellMetadata
 
 from great_expectations.core.expectation_configuration import ExpectationConfiguration
 from great_expectations.expectations.expectation import ColumnMapExpectation

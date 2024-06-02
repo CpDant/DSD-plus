@@ -4,10 +4,10 @@ from great_expectations.core.batch import BatchRequest
 from great_expectations.dataset.pandas_dataset import PandasDataset
 import great_expectations
 
-import data_smell_detection.datasmelldetection.core
+import datasmelldetection.core
 
 
-class DatasetWrapper(data_smell_detection.datasmelldetection.core.Dataset):
+class DatasetWrapper(datasmelldetection.core.Dataset):
     """
     A thin wrapper around :class:`great_expectations.dataset.Dataset`.
 
@@ -50,7 +50,7 @@ class DatasetWrapper(data_smell_detection.datasmelldetection.core.Dataset):
         return self._batch_request
 
 
-class FileBasedDatasetManager(data_smell_detection.datasmelldetection.core.DatasetManager):
+class FileBasedDatasetManager(datasmelldetection.core.DatasetManager):
     """
     A class for managing :class:`.Dataset` instances.
 
