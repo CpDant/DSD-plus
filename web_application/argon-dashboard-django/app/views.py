@@ -478,6 +478,7 @@ def file_smells(request):
     context["global_comp"] = global_comp
     context["global_uniq"] = global_uniq
     context["global_val"] = global_val
+
     return TemplateResponse(request, 'file-smells.html', context)
 
 def retrieve_groups(request):
@@ -490,6 +491,12 @@ def precheck_columns(columns):
     if "Unnamed: 0" in columns:
         columns.remove("Unnamed: 0")
     return sorted(columns)
+
+def delete_file(request):
+    filename = request.POST.get('del') + ".csv"
+    File.objects.get(file_name=filename).delete()
+    return redirect('saved')
+
 
 # Get item of dictionary in template
 @register.filter

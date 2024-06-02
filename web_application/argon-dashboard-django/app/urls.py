@@ -14,6 +14,7 @@ urlpatterns = [
     re_path('results.html', views.result, name='result'),
     re_path('saved.html', views.saved, name='saved'),
     re_path('groups', views.retrieve_groups, name='retrieve_groups'),
+    re_path('delete-file', views.delete_file, name='delete-file'),
     re_path('filesmells', views.file_smells, name='filesmells'),
     re_path(r'^.*\.*', views.pages, name='pages'),
 ]
