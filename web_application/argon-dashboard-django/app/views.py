@@ -10,8 +10,6 @@ from django.core.files.storage import FileSystemStorage
 from django.views.decorators.csrf import csrf_protect
 from django.core.cache import cache
 
-from data_smell_detection.datasmelldetection.detectors.great_expectations.expectations import \
-    ExpectColumnValuesToNotContainSpacingSmell, ExpectColumnValuesToNotContainSpecialCharacterSmell
 from .forms import ParameterForm
 import os
 import sys
@@ -31,6 +29,8 @@ from datasmelldetection.detectors.great_expectations.profiler import DataSmellAw
 from datasmelldetection.detectors.great_expectations.detector import DataSmellAwareConfiguration
 from datasmelldetection.core.detector import DetectionStatistics, DetectionResult
 from datasmelldetection.core.datasmells import DataSmellType
+from datasmelldetection.detectors.great_expectations.expectations import \
+    ExpectColumnValuesToNotContainSpacingSmell, ExpectColumnValuesToNotContainSpecialCharacterSmell
 from django.contrib import messages
 
 # Different smells by its category

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from typing import Optional, Set, Iterable, List, Any
 
-from data_smell_detection.datasmelldetection.core import DataSmellType
+from datasmelldetection.core import DataSmellType
 
 
 @dataclass

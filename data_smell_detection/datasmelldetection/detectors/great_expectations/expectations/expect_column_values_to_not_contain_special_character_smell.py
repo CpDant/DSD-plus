@@ -5,8 +5,8 @@ from great_expectations.expectations.expectation import ColumnMapExpectation
 
 from great_expectations.profile.base import ProfilerDataType
 
-from data_smell_detection.datasmelldetection.core.datasmells import DataSmellType
-from data_smell_detection.datasmelldetection.detectors.great_expectations.datasmell import (
+from datasmelldetection.core.datasmells import DataSmellType
+from datasmelldetection.detectors.great_expectations.datasmell import (
     DataSmell,
     DataSmellMetadata
 )
