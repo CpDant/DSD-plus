@@ -377,6 +377,7 @@ def result(request):
         # Delete file and detection result if button submit
         if request.method == 'POST':
             File.objects.get(file_name=file1.file_name).delete()
+            FileSystemStorage().delete(file1.file_name)
             context['delete_message'] = 'Result deleted and not viewable in Saved Results.'
 
     except Exception as e:
@@ -495,6 +496,7 @@ def precheck_columns(columns):
 def delete_file(request):
     filename = request.POST.get('del') + ".csv"
     File.objects.get(file_name=filename).delete()
+    FileSystemStorage().delete(filename)
     return redirect('saved')
 
 
