@@ -343,7 +343,7 @@ def result(request):
             column_names=column_names,
             data_smell_configuration=ds_config
         )
-        detector = DetectorBuilder(context=con, dataset=dataset).build()
+        detector = DetectorBuilder(context=con, dataset=dataset).set_configuration(conf).build()
 
         #To add new expections to the default registry, you need to create an instance of every expecation
         spacing = ExpectColumnValuesToNotContainSpacingSmell()

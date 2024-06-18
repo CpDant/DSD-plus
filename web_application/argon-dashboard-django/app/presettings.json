@@ -33,10 +33,10 @@
 		"mostly": 0.01
 	  },
 	  "Spacing Smell": {
-	    "mostly": 0.01
+	    "mostly": 0.9
 	  },
 	  "Special Character Smell": {
-	    "mostly": 0.01
+	    "mostly": 0.9
 	  }
 	},
 	"medium": {
@@ -73,10 +73,10 @@
 		"mostly": 0.1
 	  },
 	  "Spacing Smell": {
-	    "mostly": 0.1
+	    "mostly": 0.95
 	  },
 	  "Special Character Smell": {
-	    "mostly": 0.1
+	    "mostly": 0.95
 	  }
 	},
 	"strict": {
@@ -113,10 +113,10 @@
 		"mostly": 0.2
 	  },
 	  "Spacing Smell": {
-	    "mostly": 0.2
+	    "mostly": 1
 	  },
 	  "Special Character Smell": {
-	    "mostly": 0.2
+	    "mostly": 1
 	  }
 	}
   }
