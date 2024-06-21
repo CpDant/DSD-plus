@@ -21,22 +21,35 @@ class ExpectColumnValuesToNotContainSpecialCharacterSmell(ColumnMapExpectation, 
     examples = [
         {
             "data": {
-
-                "special": ["22", "22", "22"]
+                "punctuation_special_character": ["te§t", "t&st", "¿test?", "test ¶", "~test"],
+                "stressed_letter_special_character": ["tæst", "tëst", "tÉst", "test Å", "çtest"],
+                "no_special_character_smell": ["22", "hello", "hello22", "HELLO", "HELLO 22"]
 
             },
             "tests": [
                 {
-                    "title": "test_special",
+                    "title": "punctuation_special_character_test",
                     "exact_match_out": False,
                     "include_in_gallery": True,
-                    "in": {"column": "special"},
-                    "out": {
-                        "success": True,
-                        "partial_unexpected_list": []
-                    }
-                }
+                    "in": {"column": "punctuation_special_character", "mostly": 1},
+                    "out": {"success": False}
+                },
 
+                {
+                    "title": "stressed_letter_special_character_test",
+                    "exact_match_out": False,
+                    "include_in_gallery": True,
+                    "in": {"column": "stressed_letter_special_character", "mostly": 1},
+                    "out": {"success": False}
+                },
+
+                {
+                    "title": "no_special_character_smell_test",
+                    "exact_match_out": False,
+                    "include_in_gallery": True,
+                    "in": {"column": "no_special_character_smell", "mostly": 1},
+                    "out": {"success": True}
+                }
             ]
         }
     ]

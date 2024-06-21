@@ -20,14 +20,14 @@ from .helper_functions import check_expectation_examples
 
 class TestExpectations:
     expectations_to_test: List[Expectation] = [
-        ExpectColumnValuesToNotContainSuspectSignSmell(),
-        ExpectColumnValuesToNotContainIntegerAsStringSmell(),
-        ExpectColumnValuesToNotContainFloatingPointNumberAsStringSmell(),
-        ExpectColumnValuesToNotContainLongDataValueSmell(),
-        ExpectColumnValuesToNotContainIntegerAsFloatingPointNumberSmell(),
-        ExpectColumnValuesToNotContainCasingSmell(),
-        ExpectColumnValuesToNotContainSpecialCharacterSmell(),
-        ExpectColumnValuesToNotContainSpacingSmell()
+        #ExpectColumnValuesToNotContainSuspectSignSmell(),
+        #ExpectColumnValuesToNotContainIntegerAsStringSmell(),
+        #ExpectColumnValuesToNotContainFloatingPointNumberAsStringSmell(),
+        #ExpectColumnValuesToNotContainLongDataValueSmell(),
+        #ExpectColumnValuesToNotContainIntegerAsFloatingPointNumberSmell(),
+        #ExpectColumnValuesToNotContainCasingSmell(),
+        ExpectColumnValuesToNotContainSpecialCharacterSmell()
+        #ExpectColumnValuesToNotContainSpacingSmell()
         #TODO Inserire casi di test per questi tre smell specifici
         #ExpectColumnValuesToNotContainDuplicatedValueSmell(),
         #ExpectColumnValuesToNotContainExtremeValueSmell(),

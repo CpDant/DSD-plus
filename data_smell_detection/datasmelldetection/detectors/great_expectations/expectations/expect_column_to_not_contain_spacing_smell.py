@@ -21,22 +21,61 @@ class ExpectColumnValuesToNotContainSpacingSmell(ColumnMapExpectation, DataSmell
     examples = [
         {
             "data": {
-
-                "spacing": ["Test", "Test", "Test"]
-
+                "begin_space": [" test", "test", "test"],
+                "multiple_begin_space": ["      test", "test", "test"],
+                "inner_space": ["test    test", "test", "test"],
+                "end_space": ["test ", "test", "test"],
+                "multiple_end_space": ["test      ", "test", "test"],
+                "no_spacing_smell": ["test", "test test", "test"],
             },
             "tests": [
                 {
-                    "title": "test_spacing",
+                    "title": "begin_space_test",
                     "exact_match_out": False,
                     "include_in_gallery": True,
-                    "in": {"column": "spacing"},
-                    "out": {
-                        "success": True,
-                        "partial_unexpected_list": []
-                    }
-                }
+                    "in": {"column": "begin_space", "mostly": 1},
+                    "out": {"success": False}
+                },
 
+                {
+                    "title": "multiple_begin_space_test",
+                    "exact_match_out": False,
+                    "include_in_gallery": True,
+                    "in": {"column": "multiple_begin_space", "mostly": 1},
+                    "out": {"success": False}
+                },
+
+                {
+                    "title": "inner_space_test",
+                    "exact_match_out": False,
+                    "include_in_gallery": True,
+                    "in": {"column": "inner_space", "mostly": 1},
+                    "out": {"success": False}
+                },
+
+                {
+                    "title": "end_space_test",
+                    "exact_match_out": False,
+                    "include_in_gallery": True,
+                    "in": {"column": "end_space", "mostly": 1},
+                    "out": {"success": False}
+                },
+
+                {
+                    "title": "multiple_end_space_test",
+                    "exact_match_out": False,
+                    "include_in_gallery": True,
+                    "in": {"column": "multiple_end_space", "mostly": 1},
+                    "out": {"success": False}
+                },
+
+                {
+                    "title": "no_spacing_smell_test",
+                    "exact_match_out": False,
+                    "include_in_gallery": True,
+                    "in": {"column": "no_spacing_smell", "mostly": 1},
+                    "out": {"success": True}
+                },
             ]
         }
     ]
