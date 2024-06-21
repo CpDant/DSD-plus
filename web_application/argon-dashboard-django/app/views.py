@@ -523,7 +523,7 @@ def calculate_completeness(datasmells):
         for smell in column_smells:
             if smell.data_smell_type.smell_type == "Missing Value Smell":
                 completeness = ((smell.total_element_count - smell.faulty_element_count) / smell.total_element_count) * 100
-                completeness_map[column.column_name] = completeness
+                completeness_map[column.column_name] = round(completeness, 2)
 
                 global_faulty_elements += smell.faulty_element_count
 
@@ -547,7 +547,7 @@ def calculate_uniqueness(datasmells):
         for smell in column_smells:
             if smell.data_smell_type.smell_type == "Duplicated Value Smell":
                 uniqueness = ((smell.total_element_count - smell.faulty_element_count) / smell.total_element_count) * 100
-                uniqueness_map[column.column_name] = uniqueness
+                uniqueness_map[column.column_name] = round(uniqueness, 2)
 
                 global_faulty_elements += smell.faulty_element_count
 
@@ -571,7 +571,7 @@ def calculate_validity(datasmells):
         for smell in column_smells:
             if smell.data_smell_type.smell_type == "Integer As String Smell" or smell.data_smell_type.smell_type == "Floating Point Number As String Smell" or smell.data_smell_type.smell_type == "Integer As Floating Point Number Smell":
                 validity = ((smell.total_element_count - smell.faulty_element_count) / smell.total_element_count) * 100
-                validity_map[column.column_name] = validity
+                validity_map[column.column_name] = round(validity, 2)
 
                 global_faulty_elements += smell.faulty_element_count
 
