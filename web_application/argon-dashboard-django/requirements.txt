@@ -10,3 +10,4 @@ python-decouple
 gunicorn
 whitenoise
 django-crontab==0.7.1
+jinja2==3.0.3
