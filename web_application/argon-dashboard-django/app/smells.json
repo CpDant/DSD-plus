@@ -34,6 +34,33 @@
       }
    },
    "Encoding Understandability Smells":{
+      "Date As DateTime Smell":{
+
+      },
+      "Date As String Smell":{
+
+      },
+      "DateTime As String Smell":{
+
+      },
+      "Floating Point Number As String Smell":{
+         "mostly": {"min": 0.0, "max": 1.0}
+      },
+      "Integer As Floating Point Number Smell":{
+        "mostly": {"min": 0.0, "max": 1.0},
+        "epsilon": {"min": 0.0, "max": "inf"}
+      },
+      "Integer As String Smell":{
+         "mostly": {"min": 0.0, "max": 1.0}
+      },
+      "Time As String Smell":{
+
+      },
+      "Suspect Character Encoding Smell":{
+
+      }
+   },
+   "Syntactic Understandability Smells":{
       "Ambiguous Date/Time Format Smell":{
          
       },
@@ -74,33 +101,6 @@
          
       },
       "Tagging Smell":{
-         
-      }
-   },
-   "Syntactic Understandability Smells":{
-      "Date As DateTime Smell":{
-         
-      },
-      "Date As String Smell":{
-         
-      },
-      "DateTime As String Smell":{
-         
-      },
-      "Floating Point Number As String Smell":{
-         "mostly": {"min": 0.0, "max": 1.0}
-      },
-      "Integer As Floating Point Number Smell":{
-        "mostly": {"min": 0.0, "max": 1.0},
-        "epsilon": {"min": 0.0, "max": "inf"}
-      },
-      "Integer As String Smell":{
-         "mostly": {"min": 0.0, "max": 1.0}
-      },
-      "Time As String Smell":{
-         
-      },
-      "Suspect Character Encoding Smell":{
          
       }
    },
