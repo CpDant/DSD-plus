@@ -115,18 +115,19 @@
    <div class="row">
       <div class="col">
          <div class="card shadow">
-            <div class="card-header bg-transparent">
-               <h3 class="mb-0">Upload a .csv file to detect data smells</h3>
-               <p>Drag & drop or click & select a .csv file for data smell detection. </p>
-            </div>
             <div class="card-body">
+                <h3 class="mb-0">Upload a .csv file to detect data smells</h3>
+               <p>Drag & drop or click & select a .csv file for data smell detection. </p>
                <div class="grid-container"></div>
                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <div class="text-center" id="select-group-div" style="display: none">
-                        <input class="dsd-input mb-1" type="text" name="input-group-name" value="DEFAULT" placeholder="Select a group name or write here a new one!">
-                        <select class="dsd-select mb-3" id="group-selector" name="group-selector" aria-label="select-group">
-                        </select>
+                    <div id="select-group-div" style="display: none">
+                        <h3 class="mb-0">Detection group choice</h3>
+                            <p>Insert a new group name or focus and click the empty textbox to choose the existent ones.</p>
+                            <input class="dsd-input mb-1" type="text" id="input-group-name" name="input-group-name" list="group-selector" required>
+                            <datalist id="group-selector">
+                            </datalist>
+                        <hr>
                     </div>
                     <div class="file-droppable">
                         <div>
@@ -135,11 +136,11 @@
                             <button class="buttongrey" type="submit"><i class="ni ni-cloud-upload-96"></i> Select file</button>
                         </div>
                         <span>&times;</span>
-                        <input type="file" name="upload" />
+                        <input type="file" name="upload" id="upload-file" />
                     </div>
                     <br>
                     {% if url %}
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <div class="alert alert-success alert-dismissible fade show" id="msg-success" role="alert">
                             <span class="alert-inner--icon"><i class="ni ni-like-2"></i></span>
                             <span class="alert-inner--text"><strong>Success!</strong><br>Uploaded file: {{ url }}
                             <br>Uploaded file size: {{ size }} Mb</span>
@@ -148,9 +149,6 @@
                             </button>
                         </div>
                         <div>
-                            <div style="float: left;">
-                                <button class="btn btn-primary" type="submit">Upload different file</button>
-                            </div>
                             <div style="float: right;">
                                 <a href="/customize.html">
                                     <div style="text-align: right;">
@@ -192,14 +190,14 @@
                     success: function (data) {
                         let options = "";
                         if(data["list"].length === 0){
-                            options += "<option value='none' selected>No groups found</option>";
+                            $("#input-group-name").val("There are no existent groups")
                         } else {
                             for(i = 0; i < data["list"].length; i++) {
                                 let element = data["list"][i];
                                 options += "<option value='" + element + "'>"+ element +"</option>";
                             }
+                            $("#group-selector").append(options);
                         }
-                        $("#group-selector").append(options);
                     }
                 });
                 $("#select-group-div").show();
