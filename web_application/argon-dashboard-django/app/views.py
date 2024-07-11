@@ -117,13 +117,7 @@ def upload(request):
             dataset = manager.get_dataset(file_name)
             detector = DetectorBuilder(context=con, dataset=dataset).build()
 
-            # To add new expections to the default registry, you need to create an instance of every expecation
-            spacing = ExpectColumnValuesToNotContainSpacingSmell()
-            special = ExpectColumnValuesToNotContainSpecialCharacterSmell()
-
-            # Then you can register it into the registry of the detector
-            spacing.register_data_smell(detector.registry)
-            special.register_data_smell(detector.registry)
+            register_new_smells(detector)
 
             supported_smells = detector.get_supported_data_smell_types()
             
@@ -152,6 +146,7 @@ def upload(request):
             context['message'] = 'Upload a .csv file.'
 
     return TemplateResponse(request, 'index.html', context)
+
 
 @login_required
 def customize(request):
@@ -346,13 +341,15 @@ def result(request):
         )
         detector = DetectorBuilder(context=con, dataset=dataset).set_configuration(conf).build()
 
-        #To add new expections to the default registry, you need to create an instance of every expecation
-        spacing = ExpectColumnValuesToNotContainSpacingSmell()
-        special = ExpectColumnValuesToNotContainSpecialCharacterSmell()
+        register_new_smells(detector)
 
-        #Then you can register it into the registry of the detector
-        spacing.register_data_smell(detector.registry)
-        special.register_data_smell(detector.registry)
+        # #To add new expections to the default registry, you need to create an instance of every expecation
+        # spacing = ExpectColumnValuesToNotContainSpacingSmell()
+        # special = ExpectColumnValuesToNotContainSpecialCharacterSmell()
+        #
+        # #Then you can register it into the registry of the detector
+        # spacing.register_data_smell(detector.registry)
+        # special.register_data_smell(detector.registry)
 
         # Detect smells and sort result
         detected_smells = detector.detect()
@@ -483,16 +480,27 @@ def file_smells(request):
 
     return TemplateResponse(request, 'file-smells.html', context)
 
+
+def register_new_smells(detector):
+    # To add new expectations to the default registry, you need to create an instance of every expectation
+    spacing = ExpectColumnValuesToNotContainSpacingSmell()
+    special = ExpectColumnValuesToNotContainSpecialCharacterSmell()
+    # Then you can register it into the registry of the detector
+    spacing.register_data_smell(detector.registry)
+    special.register_data_smell(detector.registry)
+
 def retrieve_groups(request):
     groups = Group.objects.all()
     return_list = [g.group_name for g in groups]
     return JsonResponse({'list': return_list}, status=200, content_type="application/json")
+
 
 # Remove row indexes
 def precheck_columns(columns):
     if "Unnamed: 0" in columns:
         columns.remove("Unnamed: 0")
     return sorted(columns)
+
 
 def delete_file(filename):
     file_to_delete = File.objects.get(file_name=filename)
@@ -503,6 +511,7 @@ def delete_file(filename):
     print(files_belonging_group.count())
     if files_belonging_group.count() == 0:
         Group.objects.get(group_name=group_name).delete()
+
 
 def delete_results(request):
     filename = request.POST.get('del') + ".csv"
