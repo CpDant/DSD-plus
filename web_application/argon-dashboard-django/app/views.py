@@ -14,14 +14,14 @@ from .forms import ParameterForm
 import os
 import sys
 import time
-from app.models import File, Column, DetectedSmell, SmellType, Parameter, Group
+from app.models import File, Column, DetectedSmell, SmellType, Parameter, Group, MetricType, ComputedMetric
 from app import forms
-from app.metrics import calculate_completeness, calculate_uniqueness, calculate_validity
+from app.metrics import compute_completeness, compute_uniqueness, compute_validity
 from core.settings import SMELL_FOLDER, BASE_DIR, CORE_DIR, LIBRARY_DIR
 from django.contrib.auth.models import User
 import json
 cwd = os.getcwd()
-sys.path.append(LIBRARY_DIR+"/data_smell_detection/")
+sys.path.append(LIBRARY_DIR + "/data_smell_detection/")
 from datasmelldetection.detectors.great_expectations.dataset import FileBasedDatasetManager
 from datasmelldetection.detectors.great_expectations.context import GreatExpectationsContextBuilder
 from datasmelldetection.detectors.great_expectations.detector import DetectorBuilder
@@ -35,16 +35,16 @@ from datasmelldetection.detectors.great_expectations.expectations import \
 from django.contrib import messages
 
 # Different smells by its category
-with open(SMELL_FOLDER+'smells.json') as json_file:
+with open(SMELL_FOLDER + 'smells.json') as json_file:
     data = json.load(json_file)
 
-with open(SMELL_FOLDER+'presettings.json') as json_file:
+with open(SMELL_FOLDER + 'presettings.json') as json_file:
     presettings_smells = json.load(json_file)
 
-with open(SMELL_FOLDER+'doc.json') as json_file:
+with open(SMELL_FOLDER + 'doc.json') as json_file:
     doc_file = json.load(json_file)
 
-all_smells = {i: {DataSmellType(a):b for a,b in j.items()} for i,j in data.items()}
+all_smells = {i: {DataSmellType(a): b for a, b in j.items()} for i, j in data.items()}
 believability_smells = all_smells['Believability Smells']
 syntactic_understandability_smells = all_smells['Encoding Understandability Smells']
 encoding_understandability_smells = all_smells['Syntactic Understandability Smells']
@@ -55,7 +55,7 @@ def index(request):
     context = {}
     context['segment'] = 'index'
 
-    html_template = loader.get_template( 'index.html' )
+    html_template = loader.get_template('index.html')
     return HttpResponse(html_template.render(context, request))
 
 def pages(request):
@@ -63,24 +63,22 @@ def pages(request):
     # All resource paths end in .html.
     # Pick out the html file name from the url. And load that template.
     try:
-        load_template      = request.path.split('/')[-1]
+        load_template = request.path.split('/')[-1]
         context['segment'] = load_template
-        
-        html_template = loader.get_template( load_template )
+        html_template = loader.get_template(load_template)
         return HttpResponse(html_template.render(context, request))
-        
     except template.TemplateDoesNotExist:
-
-        html_template = loader.get_template( 'page-404.html' )
+        html_template = loader.get_template('page-404.html')
         return HttpResponse(html_template.render(context, request))
-
     except:
-        html_template = loader.get_template( 'page-403.html' )
+        html_template = loader.get_template('page-403.html')
         return HttpResponse(html_template.render(context, request))
+
 
 @login_required
 def upload(request):
-    global all_smells, believability_smells, syntactic_understandability_smells, encoding_understandability_smells, consistency_smells
+    global all_smells, believability_smells, syntactic_understandability_smells, encoding_understandability_smells, \
+        consistency_smells
 
     # Some presettings for data smell detection
     outer = os.path.join(os.getcwd(), "../")
@@ -104,7 +102,7 @@ def upload(request):
         if '.csv' in uploaded_file.name:
             fs = FileSystemStorage()
             file_name = fs.save(uploaded_file.name, uploaded_file)
-            context['url'] = fs.url(file_name)   
+            context['url'] = fs.url(file_name)
             context['size'] = fs.size(file_name) / 1000000
 
             group = Group(group_name=group_name)
@@ -113,14 +111,14 @@ def upload(request):
             # Save file to database
             file1 = File(file_name=file_name, user=request.user, group_name_id=group_name)
             file1.save()
-            
+
             dataset = manager.get_dataset(file_name)
             detector = DetectorBuilder(context=con, dataset=dataset).build()
 
             register_new_smells(detector)
 
             supported_smells = detector.get_supported_data_smell_types()
-            
+
             # Save supported smell to database
             for s in supported_smells:
                 smell = SmellType(smell_type=s.value)
@@ -128,19 +126,30 @@ def upload(request):
                 smell.belonging_file.add(file1)
 
                 # Save parameters for smells
-                parameters = believability_smells.get(s) or syntactic_understandability_smells.get(s) or encoding_understandability_smells.get(s) or consistency_smells.get(s)
+                parameters = believability_smells.get(s) or syntactic_understandability_smells.get(
+                    s) or encoding_understandability_smells.get(s) or consistency_smells.get(s)
                 if parameters is not None:
-                    for p,v in parameters.items():
+                    for p, v in parameters.items():
                         if v["max"] != "inf":
-                            par = Parameter(name=p, value=presettings_smells["tolerant"][s.value][p], belonging_smell=smell, belonging_file=file1, min_value=v["min"], max_value=v["max"])
-                        else: 
-                            par = Parameter(name=p, value=presettings_smells["tolerant"][s.value][p], belonging_smell=smell, belonging_file=file1, min_value=v["min"], max_value=-1)
+                            par = Parameter(name=p, value=presettings_smells["tolerant"][s.value][p],
+                                            belonging_smell=smell, belonging_file=file1, min_value=v["min"],
+                                            max_value=v["max"])
+                        else:
+                            par = Parameter(name=p, value=presettings_smells["tolerant"][s.value][p],
+                                            belonging_smell=smell, belonging_file=file1, min_value=v["min"],
+                                            max_value=-1)
                         par.save()
 
             # Save columns to database
             columns = precheck_columns(dataset.get_column_names())
             for c in columns:
                 Column.objects.create(column_name=c, belonging_file=file1)
+
+            # Save implemented metrics to database
+            MetricType(metric_type="Completeness").save()
+            MetricType(metric_type="Uniqueness").save()
+            MetricType(metric_type="Validity").save()
+
         else:
             # Message if unsupported datatype was uploaded
             context['message'] = 'Upload a .csv file.'
@@ -150,17 +159,18 @@ def upload(request):
 
 @login_required
 def customize(request):
-    global all_smells, believability_smells, syntactic_understandability_smells, encoding_understandability_smells, consistency_smells
+    global all_smells, believability_smells, syntactic_understandability_smells, encoding_understandability_smells, \
+        consistency_smells
     context = {}
-    
+
     # Get latest file and available smells of current user
     file1 = File.objects.filter(user_id=request.user.id).latest("uploaded_time")
     smells = SmellType.objects.all().filter(belonging_file=file1)
 
     # Get smells for certain file from all smells in order to keep subcategories
     smell_types = [s.smell_type for s in list(smells)]
-    available_smells = {i: {a:b for (a,b) in j.items() if a.value in smell_types} for i,j in all_smells.items()}
-    
+    available_smells = {i: {a: b for (a, b) in j.items() if a.value in smell_types} for i, j in all_smells.items()}
+
     # Get column names by id and by name for user selection
     column_names_by_id = list(Column.objects.all().filter(belonging_file=file1))
     column_names = [c.column_name for c in column_names_by_id]
@@ -173,87 +183,88 @@ def customize(request):
 
     # After customization button submit
     if request.method == 'POST' and 'tolerant' not in request.POST and 'medium' not in request.POST and 'strict' not in request.POST:
-      # Selected smells and column names
-      smells_list = request.POST.getlist('smells')  
-      columns = request.POST.getlist('columns')
+        # Selected smells and column names
+        smells_list = request.POST.getlist('smells')
+        columns = request.POST.getlist('columns')
 
-      # Set checkbox status
-      checked_columns = {}
-      for c in column_names:
-          checked_columns[c] = "column_checked" if not columns or c in columns else "column_unchecked" 
-          
-      context['column_names'] = dict(checked_columns)
+        # Set checkbox status
+        checked_columns = {}
+        for c in column_names:
+            checked_columns[c] = "column_checked" if not columns or c in columns else "column_unchecked"
 
-      # Build smell dictionary with parameters for template
-      forms = dict(available_smells)
-      form_error = False
+        context['column_names'] = dict(checked_columns)
 
-      # Get parameter values for every smell
-      for k,values in available_smells.items():
-          temp = dict(values)
-          for v in values:
-            smell_db = SmellType.objects.get(smell_type=v.value)
-            parameter_list = list(Parameter.objects.all().filter(belonging_smell=smell_db, belonging_file=file1))
+        # Build smell dictionary with parameters for template
+        forms = dict(available_smells)
+        form_error = False
 
-            # Set smell status
-            form_dict = {}
-            form_dict["checkbox"] = "smell_checked" if not smells_list or str(v) in smells_list else "smell_unchecked"
-           
-            for p in parameter_list:
-                # Build prefix for form
-                prefix_name = str(v)+str(p)
-                
-                form_dict[p.name] = list()
-                form_dict[p.name].append(p)
-                if len(request.POST) > 4:
-                    form_dict[p.name].append(ParameterForm(request.POST, prefix=prefix_name, instance=p))
+        # Get parameter values for every smell
+        for k, values in available_smells.items():
+            temp = dict(values)
+            for v in values:
+                smell_db = SmellType.objects.get(smell_type=v.value)
+                parameter_list = list(Parameter.objects.all().filter(belonging_smell=smell_db, belonging_file=file1))
 
-                    # Save values if form is valid or set error to True
-                    if form_dict[p.name][1].is_valid():
-                        form_dict[p.name][1].save()
-                    elif "This field is required." not in form_dict[p.name][1].errors.as_json():
-                        form_error = True
+                # Set smell status
+                form_dict = {}
+                form_dict["checkbox"] = "smell_checked" if not smells_list or str(
+                    v) in smells_list else "smell_unchecked"
 
-                else:
-                    form_dict[p.name].append(ParameterForm(prefix=prefix_name, instance=p))
-                
-            temp[v] = dict(form_dict)
-          forms[k] = dict(temp)
+                for p in parameter_list:
+                    # Build prefix for form
+                    prefix_name = str(v) + str(p)
 
-      # If smells and columns had been selected and no error occurred
-      if not form_error and smells_list and columns:
-        context['list_smells'] = [s.split('.')[1].replace("_", " ") for s in smells_list]
-        context['list_columns'] = columns
-    
-        # Delete columns and smells which should not be detected according to user's customization
-        columns_to_delete = []
-        for c in column_names_by_id:
-            if c.column_name not in columns:
-                columns_to_delete.append(c.id)
-        for c in columns_to_delete:
-            Column.objects.get(id=c).delete()
+                    form_dict[p.name] = list()
+                    form_dict[p.name].append(p)
+                    if len(request.POST) > 4:
+                        form_dict[p.name].append(ParameterForm(request.POST, prefix=prefix_name, instance=p))
 
-        smells_to_delete = []
-        for s in list(smells):
-            if 'DataSmellType.'+s.smell_type.replace(" ", "_").upper() not in smells_list:
-                s.belonging_file.remove(file1)
+                        # Save values if form is valid or set error to True
+                        if form_dict[p.name][1].is_valid():
+                            form_dict[p.name][1].save()
+                        elif "This field is required." not in form_dict[p.name][1].errors.as_json():
+                            form_error = True
 
-      elif form_error:
-        context['message'] = 'Invalid parameter values.'
+                    else:
+                        form_dict[p.name].append(ParameterForm(prefix=prefix_name, instance=p))
 
-      else:
-        context['message'] = 'Select smells AND columns.'  
-    
-    # Before customization button submit and/or presetting was selected
+                temp[v] = dict(form_dict)
+            forms[k] = dict(temp)
+
+        # If smells and columns had been selected and no error occurred
+        if not form_error and smells_list and columns:
+            context['list_smells'] = [s.split('.')[1].replace("_", " ") for s in smells_list]
+            context['list_columns'] = columns
+
+            # Delete columns and smells which should not be detected according to user's customization
+            columns_to_delete = []
+            for c in column_names_by_id:
+                if c.column_name not in columns:
+                    columns_to_delete.append(c.id)
+            for c in columns_to_delete:
+                Column.objects.get(id=c).delete()
+
+            smells_to_delete = []
+            for s in list(smells):
+                if 'DataSmellType.' + s.smell_type.replace(" ", "_").upper() not in smells_list:
+                    s.belonging_file.remove(file1)
+
+        elif form_error:
+            context['message'] = 'Invalid parameter values.'
+
+        else:
+            context['message'] = 'Select smells AND columns.'
+
+            # Before customization button submit and/or presetting was selected
     else:
         # Build smell dictionary with parameters for template
-        
+
         if 'tolerant' in request.POST:
             context['presetting'] = 'tolerant'
 
         elif 'medium' in request.POST:
             context['presetting'] = 'medium'
-        
+
         elif 'strict' in request.POST:
             context['presetting'] = 'strict'
         else:
@@ -265,38 +276,39 @@ def customize(request):
         checked_columns = {}
         for c in column_names:
             checked_columns[c] = "column_checked" if not columns or c in columns else "column_unchecked"
-           
+
         context['column_names'] = dict(checked_columns)
-        for k,values in available_smells.items():
-          temp = dict(values)
+        for k, values in available_smells.items():
+            temp = dict(values)
 
-          for v in values:
-            smell_db = SmellType.objects.get(smell_type=v.value)
-            parameter_list = list(Parameter.objects.all().filter(belonging_smell=smell_db, belonging_file=file1))
-            
-            # Set smell status
-            form_dict = {}
-            form_dict["checkbox"] = "smell_checked" if not request.POST.getlist('smells') or str(v) in request.POST.getlist('smells') else "smell_unchecked"
+            for v in values:
+                smell_db = SmellType.objects.get(smell_type=v.value)
+                parameter_list = list(Parameter.objects.all().filter(belonging_smell=smell_db, belonging_file=file1))
 
-            for p in parameter_list:
-                prefix_name = str(v)+str(p)
-                form_dict[p.name] = list()
-                form_dict[p.name].append(p)
+                # Set smell status
+                form_dict = {}
+                form_dict["checkbox"] = "smell_checked" if not request.POST.getlist('smells') or str(
+                    v) in request.POST.getlist('smells') else "smell_unchecked"
 
-                if context['presetting'] and p.name in presettings_smells[context['presetting']][v.value]:
-                    data = {'value': presettings_smells[context['presetting']][v.value][p.name]}
-                else:
-                    data = {'value': 1.0}
-                    
-                if context['presetting']:
-                    form_dict[p.name].append(ParameterForm(initial=data, prefix=prefix_name, instance=p))
-                else:
-                    form_dict[p.name].append(ParameterForm(prefix=prefix_name, instance=p))
-                
-                form_dict[p.name].append("False")
-                
-            temp[v] = dict(form_dict)
-          forms[k] = dict(temp)
+                for p in parameter_list:
+                    prefix_name = str(v) + str(p)
+                    form_dict[p.name] = list()
+                    form_dict[p.name].append(p)
+
+                    if context['presetting'] and p.name in presettings_smells[context['presetting']][v.value]:
+                        data = {'value': presettings_smells[context['presetting']][v.value][p.name]}
+                    else:
+                        data = {'value': 1.0}
+
+                    if context['presetting']:
+                        form_dict[p.name].append(ParameterForm(initial=data, prefix=prefix_name, instance=p))
+                    else:
+                        form_dict[p.name].append(ParameterForm(prefix=prefix_name, instance=p))
+
+                    form_dict[p.name].append("False")
+
+                temp[v] = dict(form_dict)
+            forms[k] = dict(temp)
 
     context['forms'] = forms
     context['forms_easy'] = forms
@@ -304,10 +316,12 @@ def customize(request):
 
     return TemplateResponse(request, 'customize.html', context)
 
+
 @login_required
 def result(request):
     # Some presettings for data smell detection
     context = {}
+    completeness_values, uniqueness_values, validity_values = {}, {}, {}
     outer = os.path.join(os.getcwd(), "../")
     context_builder = GreatExpectationsContextBuilder(
         os.path.join(outer, "../great_expectations"),
@@ -316,14 +330,13 @@ def result(request):
     con = context_builder.build()
     manager = FileBasedDatasetManager(context=con)
 
-
     # Get file for detection
     try:
         file1 = File.objects.filter(user_id=request.user.id).latest("uploaded_time")
         dataset = manager.get_dataset(file1.file_name)
         column_names = [c.column_name for c in list(Column.objects.all().filter(belonging_file=file1))]
         smells = list(SmellType.objects.all().filter(belonging_file=file1))
-        
+
         # Build dict for data smell configuration
         ds_config = {}
         for s in smells:
@@ -341,15 +354,8 @@ def result(request):
         )
         detector = DetectorBuilder(context=con, dataset=dataset).set_configuration(conf).build()
 
+        # register the new implemented smells
         register_new_smells(detector)
-
-        # #To add new expections to the default registry, you need to create an instance of every expecation
-        # spacing = ExpectColumnValuesToNotContainSpacingSmell()
-        # special = ExpectColumnValuesToNotContainSpecialCharacterSmell()
-        #
-        # #Then you can register it into the registry of the detector
-        # spacing.register_data_smell(detector.registry)
-        # special.register_data_smell(detector.registry)
 
         # Detect smells and sort result
         detected_smells = detector.detect()
@@ -361,12 +367,26 @@ def result(request):
                     if s.column_name == c:
                         sorted_results[c].append(s)
 
+        # compute metrics for the dataset and columns
+        completeness_values = compute_completeness(sorted_results)
+        uniqueness_values = compute_uniqueness(sorted_results)
+        validity_values = compute_validity(sorted_results)
+
         # Save detected smell to database
         for key, value in sorted_results.items():
             column1 = Column.objects.get(column_name=key, belonging_file=file1)
             for v in value:
                 data_smell_t = SmellType.objects.get(smell_type=v.data_smell_type.value)
-                DetectedSmell.objects.create(data_smell_type=data_smell_t, total_element_count=v.statistics.total_element_count, faulty_element_count=v.statistics.faulty_element_count, faulty_list=v.faulty_elements, belonging_column=column1)
+                DetectedSmell.objects.create(data_smell_type=data_smell_t,
+                                             total_element_count=v.statistics.total_element_count,
+                                             faulty_element_count=v.statistics.faulty_element_count,
+                                             faulty_list=v.faulty_elements, belonging_column=column1)
+
+
+        # Save dataset metrics to database
+        save_completeness(file1, completeness_values)
+        save_uniqueness(file1, uniqueness_values)
+        save_validity(file1, validity_values)
 
         context['column_names'] = column_names
         context['results'] = sorted_results
@@ -381,7 +401,6 @@ def result(request):
     except Exception as e:
         print(e)
         context['no_result'] = 'No detection result for this user available.'
-
 
     return TemplateResponse(request, 'results.html', context)
 
@@ -408,20 +427,14 @@ def saved(request):
     context['groups'] = list(user_groups)
     return TemplateResponse(request, 'saved-results.html', context)
 
+
 # Datasmells info is only available for logged in users
 @login_required
 def file_smells(request):
     group_name = request.POST.get("group-name")
     context = {}
 
-    # Presettings for data smell detection
-    outer = os.path.join(os.getcwd(), "../")
-    context_builder = GreatExpectationsContextBuilder(
-        os.path.join(outer, "../great_expectations"),
-        os.path.join(cwd, "core/media")
-    )
-    con = context_builder.build()
-    manager = FileBasedDatasetManager(context=con)
+    # Retrieve all files by user and upload time
     files = File.objects.all().filter(user_id=request.user.id, group_name_id=group_name).order_by('uploaded_time')
 
     # Create dict for parameters
@@ -429,6 +442,7 @@ def file_smells(request):
     results = {}
     completeness_values, uniqueness_values, validity_values = {}, {}, {}
     for f in files:
+        filename = f.file_name[:-4]
         all_columns = list(Column.objects.all().filter(belonging_file=f))
         all_smells_for_file = []
         for c in all_columns:
@@ -448,15 +462,16 @@ def file_smells(request):
                 if s.belonging_column.column_name == c.column_name:
                     sorted_results[c].append(s)
                     s_type = SmellType.objects.get(smell_type=s.data_smell_type.smell_type)
-                    smell_dict[s.data_smell_type.smell_type] = list(Parameter.objects.all().filter(belonging_smell=s_type, belonging_file=f))
+                    smell_dict[s.data_smell_type.smell_type] = list(
+                        Parameter.objects.all().filter(belonging_smell=s_type, belonging_file=f))
                     parameter_dict[f.file_name[:-4]] = dict(smell_dict)
 
         context['parameter_dict'] = parameter_dict
-        results[f.file_name[:-4]] = sorted_results
+        results[filename] = sorted_results
 
-        completeness_values[f.file_name[:-4]] = calculate_completeness(sorted_results)
-        uniqueness_values[f.file_name[:-4]] = calculate_uniqueness(sorted_results)
-        validity_values[f.file_name[:-4]] = calculate_validity(sorted_results)
+        completeness_values[f.file_name[:-4]] = retrieve_completeness(f, all_columns)
+        uniqueness_values[f.file_name[:-4]] = retrieve_uniqueness(f, all_columns)
+        validity_values[f.file_name[:-4]] = retrieve_validity(f, all_columns)
 
     context['results'] = results
     context['group_name'] = group_name
@@ -481,6 +496,120 @@ def file_smells(request):
     return TemplateResponse(request, 'file-smells.html', context)
 
 
+def save_completeness(file1, completeness_values):
+    completeness = MetricType.objects.get(metric_type="Completeness")
+
+    # Save global metric to database
+    ComputedMetric.objects.create(value=completeness_values["GLOBAL_COMPLETENESS"],
+                                  metric_type=completeness,
+                                  scope=ComputedMetric.Scope.DATASET,
+                                  belonging_scope_dataset=file1)
+
+    # Save column metric to database
+    for k, v in completeness_values.items():
+        if k != "GLOBAL_COMPLETENESS":
+            ComputedMetric.objects.create(value=v,
+                                      metric_type=completeness,
+                                      scope=ComputedMetric.Scope.COLUMN,
+                                      belonging_scope_column=Column.objects.get(column_name=k,
+                                                                                belonging_file=file1))
+
+
+def retrieve_completeness(f, all_columns):
+    completeness = {}
+
+    global_metric = ComputedMetric.objects.get(belonging_scope_dataset=f,
+                                               metric_type=MetricType.objects.get(metric_type="Completeness"))
+
+    completeness["GLOBAL_COMPLETENESS"] = str(global_metric.value)
+
+    for c in all_columns:
+        try:
+            column_metric = ComputedMetric.objects.get(belonging_scope_column=c,
+                                                   metric_type=MetricType.objects.get(metric_type="Completeness"))
+            completeness[c.column_name] = str(column_metric.value)
+        except ComputedMetric.DoesNotExist:
+            column_metric = None
+
+    return completeness
+
+
+def save_uniqueness(file1, uniqueness_values):
+    uniqueness = MetricType.objects.get(metric_type="Uniqueness")
+
+    # Save global metric to database
+    ComputedMetric.objects.create(value=uniqueness_values["GLOBAL_UNIQUENESS"],
+                                  metric_type=uniqueness,
+                                  scope=ComputedMetric.Scope.DATASET,
+                                  belonging_scope_dataset=file1)
+
+    # Save column metric to database
+    for k, v in uniqueness_values.items():
+        if k != "GLOBAL_UNIQUENESS":
+            ComputedMetric.objects.create(value=v,
+                                          metric_type=uniqueness,
+                                          scope=ComputedMetric.Scope.COLUMN,
+                                          belonging_scope_column=Column.objects.get(column_name=k,
+                                                                                    belonging_file=file1))
+
+
+def retrieve_uniqueness(f, all_columns):
+    uniqueness = {}
+
+    global_metric = ComputedMetric.objects.get(belonging_scope_dataset=f,
+                                               metric_type=MetricType.objects.get(metric_type="Uniqueness"))
+
+    uniqueness["GLOBAL_UNIQUENESS"] = str(global_metric.value)
+
+    for c in all_columns:
+        try:
+            column_metric = ComputedMetric.objects.get(belonging_scope_column=c,
+                                                   metric_type=MetricType.objects.get(metric_type="Uniqueness"))
+            uniqueness[c.column_name] = str(column_metric.value)
+        except ComputedMetric.DoesNotExist:
+            column_metric = None
+
+    return uniqueness
+
+
+def save_validity(file1, validity_values):
+    validity = MetricType.objects.get(metric_type="Validity")
+
+    # Save global metric to database
+    ComputedMetric.objects.create(value=validity_values["GLOBAL_VALIDITY"],
+                                  metric_type=validity,
+                                  scope=ComputedMetric.Scope.DATASET,
+                                  belonging_scope_dataset=file1)
+
+    # save column metrics to database
+    for k, v in validity_values.items():
+        if k != "GLOBAL_VALIDITY":
+            ComputedMetric.objects.create(value=v,
+                                          metric_type=validity,
+                                          scope=ComputedMetric.Scope.COLUMN,
+                                          belonging_scope_column=Column.objects.get(column_name=k,
+                                                                                    belonging_file=file1))
+
+
+def retrieve_validity(f, all_columns):
+    validity = {}
+
+    global_metric = ComputedMetric.objects.get(belonging_scope_dataset=f,
+                                               metric_type=MetricType.objects.get(metric_type="Validity"))
+
+    validity["GLOBAL_VALIDITY"] = str(global_metric.value)
+
+    for c in all_columns:
+        try:
+            column_metric = ComputedMetric.objects.get(belonging_scope_column=c,
+                                                   metric_type=MetricType.objects.get(metric_type="Validity"))
+            validity[c.column_name] = str(column_metric.value)
+        except ComputedMetric.DoesNotExist:
+            column_metric = None
+
+    return validity
+
+
 def register_new_smells(detector):
     # To add new expectations to the default registry, you need to create an instance of every expectation
     spacing = ExpectColumnValuesToNotContainSpacingSmell()
@@ -488,6 +617,7 @@ def register_new_smells(detector):
     # Then you can register it into the registry of the detector
     spacing.register_data_smell(detector.registry)
     special.register_data_smell(detector.registry)
+
 
 def retrieve_groups(request):
     groups = Group.objects.all()
@@ -525,5 +655,3 @@ def delete_results(request):
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
-
-
