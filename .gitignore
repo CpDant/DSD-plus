@@ -2,6 +2,7 @@
 env
 **/__pycache__
 .idea
+web_application/argon-dashboard-django/core/media
 */build
 */*.egg-info
 */dist
