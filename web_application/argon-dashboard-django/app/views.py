@@ -5,20 +5,14 @@ from django.template import loader
 from django.http import HttpResponse, JsonResponse
 from django import template
 from django.template.response import TemplateResponse
-from django.views.generic import TemplateView
 from django.core.files.storage import FileSystemStorage
-from django.views.decorators.csrf import csrf_protect
-from django.core.cache import cache
 
 from .forms import ParameterForm
 import os
 import sys
-import time
-from app.models import File, Column, DetectedSmell, SmellType, Parameter, Group, MetricType, ComputedMetric
-from app import forms
-from app.metrics import compute_completeness, compute_uniqueness, compute_validity
-from core.settings import SMELL_FOLDER, BASE_DIR, CORE_DIR, LIBRARY_DIR
-from django.contrib.auth.models import User
+from app.models import File, Column, DetectedSmell, SmellType, Parameter, Group, MetricType
+from app.manage_metrics import save_metric, compute_metric, retrieve_metric
+from core.settings import SMELL_FOLDER, LIBRARY_DIR
 import json
 cwd = os.getcwd()
 sys.path.append(LIBRARY_DIR + "/data_smell_detection/")
@@ -368,9 +362,11 @@ def result(request):
                         sorted_results[c].append(s)
 
         # compute metrics for the dataset and columns
-        completeness_values = compute_completeness(sorted_results)
-        uniqueness_values = compute_uniqueness(sorted_results)
-        validity_values = compute_validity(sorted_results)
+        completeness_values = compute_metric(sorted_results, ["Missing Value Smell"], "Completeness")
+        uniqueness_values = compute_metric(sorted_results, ["Duplicated Value Smell"], "Uniqueness")
+        validity_values = compute_metric(sorted_results, ["Integer As String Smell",
+                                                          "Floating Point Number As String Smell",
+                                                          "Integer As Floating Point Number Smell"], "Validity")
 
         # Save detected smell to database
         for key, value in sorted_results.items():
@@ -382,11 +378,10 @@ def result(request):
                                              faulty_element_count=v.statistics.faulty_element_count,
                                              faulty_list=v.faulty_elements, belonging_column=column1)
 
-
         # Save dataset metrics to database
-        save_completeness(file1, completeness_values)
-        save_uniqueness(file1, uniqueness_values)
-        save_validity(file1, validity_values)
+        save_metric(file1, completeness_values, "Completeness")
+        save_metric(file1, uniqueness_values, "Uniqueness")
+        save_metric(file1, validity_values, "Validity")
 
         context['column_names'] = column_names
         context['results'] = sorted_results
@@ -469,9 +464,9 @@ def file_smells(request):
         context['parameter_dict'] = parameter_dict
         results[filename] = sorted_results
 
-        completeness_values[f.file_name[:-4]] = retrieve_completeness(f, all_columns)
-        uniqueness_values[f.file_name[:-4]] = retrieve_uniqueness(f, all_columns)
-        validity_values[f.file_name[:-4]] = retrieve_validity(f, all_columns)
+        completeness_values[f.file_name[:-4]] = retrieve_metric(f, "Completeness", all_columns)
+        uniqueness_values[f.file_name[:-4]] = retrieve_metric(f, "Uniqueness", all_columns)
+        validity_values[f.file_name[:-4]] = retrieve_metric(f, "Validity", all_columns)
 
     context['results'] = results
     context['group_name'] = group_name
@@ -481,13 +476,13 @@ def file_smells(request):
 
     global_comp, global_uniq, global_val = {}, {}, {}
     for key, value in completeness_values.items():
-        global_comp[key] = value["GLOBAL_COMPLETENESS"]
+        global_comp[key] = value["GLOBAL_Completeness"]
 
     for key, value in uniqueness_values.items():
-        global_uniq[key] = value["GLOBAL_UNIQUENESS"]
+        global_uniq[key] = value["GLOBAL_Uniqueness"]
 
     for key, value in validity_values.items():
-        global_val[key] = value["GLOBAL_VALIDITY"]
+        global_val[key] = value["GLOBAL_Validity"]
 
     context["global_comp"] = global_comp
     context["global_uniq"] = global_uniq
@@ -496,124 +491,11 @@ def file_smells(request):
     return TemplateResponse(request, 'file-smells.html', context)
 
 
-def save_completeness(file1, completeness_values):
-    completeness = MetricType.objects.get(metric_type="Completeness")
-
-    # Save global metric to database
-    ComputedMetric.objects.create(value=completeness_values["GLOBAL_COMPLETENESS"],
-                                  metric_type=completeness,
-                                  scope=ComputedMetric.Scope.DATASET,
-                                  belonging_scope_dataset=file1)
-
-    # Save column metric to database
-    for k, v in completeness_values.items():
-        if k != "GLOBAL_COMPLETENESS":
-            ComputedMetric.objects.create(value=v,
-                                      metric_type=completeness,
-                                      scope=ComputedMetric.Scope.COLUMN,
-                                      belonging_scope_column=Column.objects.get(column_name=k,
-                                                                                belonging_file=file1))
-
-
-def retrieve_completeness(f, all_columns):
-    completeness = {}
-
-    global_metric = ComputedMetric.objects.get(belonging_scope_dataset=f,
-                                               metric_type=MetricType.objects.get(metric_type="Completeness"))
-
-    completeness["GLOBAL_COMPLETENESS"] = str(global_metric.value)
-
-    for c in all_columns:
-        try:
-            column_metric = ComputedMetric.objects.get(belonging_scope_column=c,
-                                                   metric_type=MetricType.objects.get(metric_type="Completeness"))
-            completeness[c.column_name] = str(column_metric.value)
-        except ComputedMetric.DoesNotExist:
-            column_metric = None
-
-    return completeness
-
-
-def save_uniqueness(file1, uniqueness_values):
-    uniqueness = MetricType.objects.get(metric_type="Uniqueness")
-
-    # Save global metric to database
-    ComputedMetric.objects.create(value=uniqueness_values["GLOBAL_UNIQUENESS"],
-                                  metric_type=uniqueness,
-                                  scope=ComputedMetric.Scope.DATASET,
-                                  belonging_scope_dataset=file1)
-
-    # Save column metric to database
-    for k, v in uniqueness_values.items():
-        if k != "GLOBAL_UNIQUENESS":
-            ComputedMetric.objects.create(value=v,
-                                          metric_type=uniqueness,
-                                          scope=ComputedMetric.Scope.COLUMN,
-                                          belonging_scope_column=Column.objects.get(column_name=k,
-                                                                                    belonging_file=file1))
-
-
-def retrieve_uniqueness(f, all_columns):
-    uniqueness = {}
-
-    global_metric = ComputedMetric.objects.get(belonging_scope_dataset=f,
-                                               metric_type=MetricType.objects.get(metric_type="Uniqueness"))
-
-    uniqueness["GLOBAL_UNIQUENESS"] = str(global_metric.value)
-
-    for c in all_columns:
-        try:
-            column_metric = ComputedMetric.objects.get(belonging_scope_column=c,
-                                                   metric_type=MetricType.objects.get(metric_type="Uniqueness"))
-            uniqueness[c.column_name] = str(column_metric.value)
-        except ComputedMetric.DoesNotExist:
-            column_metric = None
-
-    return uniqueness
-
-
-def save_validity(file1, validity_values):
-    validity = MetricType.objects.get(metric_type="Validity")
-
-    # Save global metric to database
-    ComputedMetric.objects.create(value=validity_values["GLOBAL_VALIDITY"],
-                                  metric_type=validity,
-                                  scope=ComputedMetric.Scope.DATASET,
-                                  belonging_scope_dataset=file1)
-
-    # save column metrics to database
-    for k, v in validity_values.items():
-        if k != "GLOBAL_VALIDITY":
-            ComputedMetric.objects.create(value=v,
-                                          metric_type=validity,
-                                          scope=ComputedMetric.Scope.COLUMN,
-                                          belonging_scope_column=Column.objects.get(column_name=k,
-                                                                                    belonging_file=file1))
-
-
-def retrieve_validity(f, all_columns):
-    validity = {}
-
-    global_metric = ComputedMetric.objects.get(belonging_scope_dataset=f,
-                                               metric_type=MetricType.objects.get(metric_type="Validity"))
-
-    validity["GLOBAL_VALIDITY"] = str(global_metric.value)
-
-    for c in all_columns:
-        try:
-            column_metric = ComputedMetric.objects.get(belonging_scope_column=c,
-                                                   metric_type=MetricType.objects.get(metric_type="Validity"))
-            validity[c.column_name] = str(column_metric.value)
-        except ComputedMetric.DoesNotExist:
-            column_metric = None
-
-    return validity
-
-
 def register_new_smells(detector):
     # To add new expectations to the default registry, you need to create an instance of every expectation
     spacing = ExpectColumnValuesToNotContainSpacingSmell()
     special = ExpectColumnValuesToNotContainSpecialCharacterSmell()
+
     # Then you can register it into the registry of the detector
     spacing.register_data_smell(detector.registry)
     special.register_data_smell(detector.registry)

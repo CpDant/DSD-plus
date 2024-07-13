@@ -184,7 +184,7 @@
                                                 <h4>Global Completeness</h4>
                                                 {% for key, values in completeness_values.items %}
                                                     {% if key == f %}
-                                                        <p>Global completeness for this dataset: {{ values.GLOBAL_COMPLETENESS }}%</p>
+                                                        <p>Global completeness for this dataset: {{ values.GLOBAL_Completeness }}%</p>
                                                     {% endif %}
                                                 {% endfor %}
 
@@ -200,7 +200,7 @@
                                                 <h4>Global Uniqueness</h4>
                                                 {% for key, values in uniqueness_values.items %}
                                                     {% if key == f %}
-                                                        <p>Global uniqueness for this dataset: {{ values.GLOBAL_UNIQUENESS }}%</p>
+                                                        <p>Global uniqueness for this dataset: {{ values.GLOBAL_Uniqueness }}%</p>
                                                     {% endif %}
                                                 {% endfor %}
 
@@ -216,7 +216,7 @@
                                                 <h4>Global Validity</h4>
                                                 {% for key, values in validity_values.items %}
                                                     {% if key == f %}
-                                                        <p>Global validity for this dataset: {{ values.GLOBAL_VALIDITY }}%</p>
+                                                        <p>Global validity for this dataset: {{ values.GLOBAL_Validity }}%</p>
                                                     {% endif %}
                                                 {% endfor %}
 
@@ -284,7 +284,7 @@
             let completeness_data_name = "#completeness-data-" + filename;
             let completeness_data = $(completeness_data_name).text();
             let dataset = JSON.parse(completeness_data.replaceAll("\'", "\""));
-            delete dataset.GLOBAL_COMPLETENESS;
+            delete dataset.GLOBAL_Completness;
 
             const colors = [];
             for (let i = 0; i < Object.keys(dataset).length; i++) {
@@ -318,7 +318,7 @@
             let validity_data_name = "#validity-data-" + filename;
             let validity_data = $(validity_data_name).text();
             let dataset = JSON.parse(validity_data.replaceAll("\'", "\""));
-            delete dataset.GLOBAL_VALIDITY;
+            delete dataset.GLOBAL_Validity;
 
             const colors = [];
             for (let i = 0; i < Object.keys(dataset).length; i++) {
@@ -352,7 +352,7 @@
             let uniqueness_data_name = "#uniqueness-data-" + filename;
             let uniqueness_data = $(uniqueness_data_name).text();
             let dataset = JSON.parse(uniqueness_data.replaceAll("\'", "\""));
-            delete dataset.GLOBAL_UNIQUENESS;
+            delete dataset.GLOBAL_Uniqueness;
 
             const colors = [];
             for (let i = 0; i < Object.keys(dataset).length; i++) {
