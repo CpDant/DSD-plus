@@ -21,56 +21,39 @@ class ExpectColumnValuesToNotContainSpacingSmell(ColumnMapExpectation, DataSmell
     examples = [
         {
             "data": {
-                "begin_space": [" test", "test", "test"],
-                "multiple_begin_space": ["      test", "test", "test"],
-                "inner_space": ["test    test", "test", "test"],
-                "end_space": ["test ", "test", "test"],
-                "multiple_end_space": ["test      ", "test", "test"],
                 "no_spacing_smell": ["test", "test test", "test"],
+                "one_faulty_element_with_multiple_begin_space": ["      test", "test", "test"],
+                "two_or_more_faulty_elements_with_multiple_end_space": ["test      ", "test ", "test  "],
+                "one_faulty_element_with_inner_space": ["test    test", "test", "test"],
             },
             "tests": [
+
                 {
-                    "title": "begin_space_test",
+                    "title": "TC_03_CR_01",
                     "exact_match_out": False,
                     "include_in_gallery": True,
-                    "in": {"column": "begin_space", "mostly": 1},
+                    "in": {"column": "one_faulty_element_with_multiple_begin_space", "mostly": 1},
                     "out": {"success": False}
                 },
 
                 {
-                    "title": "multiple_begin_space_test",
+                    "title": "TC_05_CR_01",
                     "exact_match_out": False,
                     "include_in_gallery": True,
-                    "in": {"column": "multiple_begin_space", "mostly": 1},
+                    "in": {"column": "one_faulty_element_with_inner_space", "mostly": 1},
                     "out": {"success": False}
                 },
 
                 {
-                    "title": "inner_space_test",
+                    "title": "TC_04_CR_01",
                     "exact_match_out": False,
                     "include_in_gallery": True,
-                    "in": {"column": "inner_space", "mostly": 1},
+                    "in": {"column": "two_or_more_faulty_elements_with_multiple_end_space", "mostly": 1},
                     "out": {"success": False}
                 },
 
                 {
-                    "title": "end_space_test",
-                    "exact_match_out": False,
-                    "include_in_gallery": True,
-                    "in": {"column": "end_space", "mostly": 1},
-                    "out": {"success": False}
-                },
-
-                {
-                    "title": "multiple_end_space_test",
-                    "exact_match_out": False,
-                    "include_in_gallery": True,
-                    "in": {"column": "multiple_end_space", "mostly": 1},
-                    "out": {"success": False}
-                },
-
-                {
-                    "title": "no_spacing_smell_test",
+                    "title": "TC_01_CR_01",
                     "exact_match_out": False,
                     "include_in_gallery": True,
                     "in": {"column": "no_spacing_smell", "mostly": 1},
