@@ -26,9 +26,8 @@ class TestExpectations:
         #ExpectColumnValuesToNotContainLongDataValueSmell(),
         #ExpectColumnValuesToNotContainIntegerAsFloatingPointNumberSmell(),
         #ExpectColumnValuesToNotContainCasingSmell(),
-        ExpectColumnValuesToNotContainSpecialCharacterSmell()
-        #ExpectColumnValuesToNotContainSpacingSmell()
-        #TODO Inserire casi di test per questi tre smell specifici
+        ExpectColumnValuesToNotContainSpecialCharacterSmell(),
+        ExpectColumnValuesToNotContainSpacingSmell()
         #ExpectColumnValuesToNotContainDuplicatedValueSmell(),
         #ExpectColumnValuesToNotContainExtremeValueSmell(),
         #ExpectColumnValuesToNotContainMissingValueSmell(),

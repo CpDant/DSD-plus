@@ -327,6 +327,13 @@ def result(request):
     # Get file for detection
     try:
         file1 = File.objects.filter(user_id=request.user.id).latest("uploaded_time")
+
+        # Delete file and detection result if button submit
+        if request.method == 'POST':
+            delete_file(file1.file_name)
+            context['delete_message'] = 'Result deleted and not viewable in Saved Results.'
+            return TemplateResponse(request, 'results.html', context)
+
         dataset = manager.get_dataset(file1.file_name)
         column_names = [c.column_name for c in list(Column.objects.all().filter(belonging_file=file1))]
         smells = list(SmellType.objects.all().filter(belonging_file=file1))
@@ -361,6 +368,11 @@ def result(request):
                     if s.column_name == c:
                         sorted_results[c].append(s)
 
+        context['column_names'] = column_names
+        context['results'] = sorted_results
+        context['file'] = file1.file_name
+
+
         # compute metrics for the dataset and columns
         completeness_values = compute_metric(sorted_results, ["Missing Value Smell"], "Completeness")
         uniqueness_values = compute_metric(sorted_results, ["Duplicated Value Smell"], "Uniqueness")
@@ -382,16 +394,6 @@ def result(request):
         save_metric(file1, completeness_values, "Completeness")
         save_metric(file1, uniqueness_values, "Uniqueness")
         save_metric(file1, validity_values, "Validity")
-
-        context['column_names'] = column_names
-        context['results'] = sorted_results
-        context['file'] = file1.file_name
-
-        # Delete file and detection result if button submit
-        if request.method == 'POST':
-            delete_file(file1.file_name)
-
-            context['delete_message'] = 'Result deleted and not viewable in Saved Results.'
 
     except Exception as e:
         print(e)
