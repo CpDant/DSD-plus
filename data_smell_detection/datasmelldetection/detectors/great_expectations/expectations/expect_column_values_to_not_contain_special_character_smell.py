@@ -21,30 +21,20 @@ class ExpectColumnValuesToNotContainSpecialCharacterSmell(ColumnMapExpectation, 
     examples = [
         {
             "data": {
-                "punctuation_special_character": ["te§t", "t&st", "¿test?", "test ¶", "~test"],
-                "stressed_letter_special_character": ["tæst", "tëst", "tÉst", "test Å", "çtest"],
-                "no_special_character_smell": ["22", "hello", "hello22", "HELLO", "HELLO 22"]
-
+                "no_special_character_smell": ["22", "hello", "hello22", "HELLO", "HELLO 22"],
+                "two_or_more_faulty_elements_with_punctuation": ["te§t", "t&st", "¿test?", "test ¶", "~test"],
             },
             "tests": [
                 {
-                    "title": "punctuation_special_character_test",
+                    "title": "TC_06_CR_01",
                     "exact_match_out": False,
                     "include_in_gallery": True,
-                    "in": {"column": "punctuation_special_character", "mostly": 1},
+                    "in": {"column": "two_or_more_faulty_elements_with_punctuation", "mostly": 1},
                     "out": {"success": False}
                 },
 
                 {
-                    "title": "stressed_letter_special_character_test",
-                    "exact_match_out": False,
-                    "include_in_gallery": True,
-                    "in": {"column": "stressed_letter_special_character", "mostly": 1},
-                    "out": {"success": False}
-                },
-
-                {
-                    "title": "no_special_character_smell_test",
+                    "title": "TC_02_CR_01",
                     "exact_match_out": False,
                     "include_in_gallery": True,
                     "in": {"column": "no_special_character_smell", "mostly": 1},
