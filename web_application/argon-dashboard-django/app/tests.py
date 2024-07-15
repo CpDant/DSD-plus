@@ -11,7 +11,7 @@ from unipath import Path
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 django.setup()
 
-from .models import File, Column, DetectedSmell, SmellType, Parameter
+from .models import File, Column, DetectedSmell, SmellType, Parameter, Group, MetricType, ComputedMetric
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory
 from django.urls import reverse 
@@ -71,31 +71,43 @@ class ViewsTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='Testuser', password='test', first_name='Test', last_name='Test')
         self.client.login(username='Testuser', password='test')
-        self.file1 = File.objects.create(file_name='test.csv', user=self.user, uploaded_time=datetime.now())
+        self.group1 = Group(group_name='Group test')
+        self.group1.save()
+        self.file1 = File(file_name='test.csv', user=self.user, uploaded_time=datetime.now(), group_name= self.group1)
         self.file1.save()
 
-        self.column1 = Column.objects.create(column_name='Age', belonging_file=self.file1)
+        self.column1 = Column(column_name='Age', belonging_file=self.file1)
         self.column1.save()
-        self.column2 = Column.objects.create(column_name='Name', belonging_file=self.file1)
+        self.column2 = Column(column_name='Name', belonging_file=self.file1)
         self.column2.save()
 
-        self.smell_type1 = SmellType.objects.create(smell_type='Missing Value Smell')
+        self.smell_type1 = SmellType(smell_type='Missing Value Smell')
         self.smell_type1.save()
         self.smell_type1.belonging_file.add(self.file1)
 
-        self.smell_type2 = SmellType.objects.create(smell_type='Duplicated Value Smell')
+        self.smell_type2 = SmellType(smell_type='Duplicated Value Smell')
         self.smell_type2.save()
         self.smell_type2.belonging_file.add(self.file1)
 
-        self.parameter1 = Parameter.objects.create(name="mostly", min_value=0.0, max_value=1.0, value=1.0, belonging_smell=self.smell_type1, belonging_file=self.file1)
+        self.parameter1 = Parameter(name="mostly", min_value=0.0, max_value=1.0, value=1.0, belonging_smell=self.smell_type1, belonging_file=self.file1)
         self.parameter1.save()
 
-        self.parameter2 = Parameter.objects.create(name="mostly", min_value=0.0, max_value=1.0, value=1.0, belonging_smell=self.smell_type2, belonging_file=self.file1)
+        self.parameter2 = Parameter(name="mostly", min_value=0.0, max_value=1.0, value=1.0, belonging_smell=self.smell_type2, belonging_file=self.file1)
         self.parameter2.save()
 
-        self.factory = RequestFactory()
-    def test_upload_csv_file(self):
+        self.metric_type1 = MetricType(metric_type='Completeness')
+        self.metric_type1.save()
+        self.metric_type2 = MetricType(metric_type='Uniqueness')
+        self.metric_type2.save()
+        self.metric_type3 = MetricType(metric_type='Validity')
+        self.metric_type3.save()
 
+        self.computed_metric1 = ComputedMetric.objects.create(value= 90.35, metric_type=self.metric_type1, scope=ComputedMetric.Scope.DATASET, belonging_scope_dataset=self.file1)
+        self.computed_metric2 = ComputedMetric.objects.create(value= 80.31, metric_type=self.metric_type2, scope=ComputedMetric.Scope.DATASET, belonging_scope_dataset=self.file1)
+        self.computed_metric3 = ComputedMetric.objects.create(value= 60.25, metric_type=self.metric_type3, scope=ComputedMetric.Scope.DATASET, belonging_scope_dataset=self.file1)
+        self.factory = RequestFactory()
+
+    def test_upload_csv_file(self):
         with open(SMELL_FOLDER+'test.csv', 'rb') as csv_file:
             request = self.factory.post(reverse('upload'), {'upload': csv_file}, content_type='text/csv')
             request.user = self.user
@@ -105,7 +117,6 @@ class ViewsTest(TestCase):
         self.assertEqual(response.template_name, 'index.html')
 
     def test_upload_png_file(self):
-        
         with open(SMELL_FOLDER+'test.png') as csv_file:
             request = self.factory.post(reverse('upload'), {'upload': csv_file}, content_type='text/csv')
             request.user = self.user
@@ -123,9 +134,9 @@ class ViewsTest(TestCase):
         self.assertEqual(response.context_data['forms']['Believability Smells'][DataSmellType('Duplicated Value Smell')]['checkbox'], 'smell_checked')
         self.assertEqual(response.context_data['forms']['Believability Smells'][DataSmellType('Duplicated Value Smell')]['mostly'][0], self.parameter2)
 
-        self.assertEqual(response.context_data['forms']['Encoding Understandability Smells'][DataSmellType('Missing Value Smell')]['checkbox'], 'smell_checked')
-        self.assertEqual(response.context_data['forms']['Encoding Understandability Smells'][DataSmellType('Missing Value Smell')]['mostly'][0], self.parameter1)
-        self.assertEqual(response.context_data['forms']['Syntactic Understandability Smells'], {})
+        self.assertEqual(response.context_data['forms']['Syntactic Understandability Smells'][DataSmellType('Missing Value Smell')]['checkbox'], 'smell_checked')
+        self.assertEqual(response.context_data['forms']['Syntactic Understandability Smells'][DataSmellType('Missing Value Smell')]['mostly'][0], self.parameter1)
+        self.assertEqual(response.context_data['forms']['Encoding Understandability Smells'], {})
         self.assertEqual(response.context_data['forms']['Consistency Smells'], {})
 
         request1 = self.factory.post(reverse('customize'), smells)
@@ -161,16 +172,17 @@ class ViewsTest(TestCase):
     def test_saved_results(self):
         self.detected_smell = DetectedSmell.objects.create(data_smell_type=self.smell_type1, total_element_count=200, faulty_element_count=10, faulty_list=["hi", "jo", "ho"], belonging_column=self.column1)
         request = self.factory.get('/')
-        request.user = self.user  # Crea o assegna un utente se necessario
+        request.user = self.user
         csrf_token = get_token(request)
         post_data = {
             'csrfmiddlewaretoken': csrf_token,
             'filename': 'test.csv',
+            'group-name': 'Group test'
         }
         request = self.factory.post(reverse('filesmells'), post_data)
         request.user = self.user
         response = file_smells(request)
-        self.assertEqual(response.context_data['results'], {'test.csv': {self.column1: [self.detected_smell], self.column2: []}})
+        self.assertEqual(response.context_data['results'], {'test': {self.column1: [self.detected_smell], self.column2: []}})
         request1 = self.factory.post(reverse('filesmells'), {'del': [self.file1.file_name]})
         request1.user = self.user
         response = file_smells(request1)
@@ -180,9 +192,11 @@ class ParameterFormTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='Testuser', password='test', first_name='Test', last_name='Test')
         self.client.login(username='Testuser', password='test')
-        self.file1 = File(file_name='Test.csv', user=self.user, uploaded_time=datetime.now())
+        self.group1 = Group(group_name='Group test')
+        self.group1.save()
+        self.file1 = File(file_name='Test.csv', user=self.user, uploaded_time=datetime.now(), group_name= self.group1)
         self.file1.save()
-        self.smell_type = SmellType.objects.create(smell_type='Missing Value Smell')
+        self.smell_type = SmellType(smell_type='Missing Value Smell')
         self.smell_type.save()
         self.smell_type.belonging_file.add(self.file1)
 
