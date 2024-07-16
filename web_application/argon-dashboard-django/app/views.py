@@ -372,28 +372,37 @@ def result(request):
         context['results'] = sorted_results
         context['file'] = file1.file_name
 
+        if len(sorted_results) != 0:
+            # compute metrics for the dataset and columns
+            completeness_values = compute_metric(sorted_results, ["Missing Value Smell"], "Completeness")
+            uniqueness_values = compute_metric(sorted_results, ["Duplicated Value Smell"], "Uniqueness")
+            validity_values = compute_metric(sorted_results, ["Integer As String Smell",
+                                                              "Floating Point Number As String Smell",
+                                                              "Integer As Floating Point Number Smell"], "Validity")
 
-        # compute metrics for the dataset and columns
-        completeness_values = compute_metric(sorted_results, ["Missing Value Smell"], "Completeness")
-        uniqueness_values = compute_metric(sorted_results, ["Duplicated Value Smell"], "Uniqueness")
-        validity_values = compute_metric(sorted_results, ["Integer As String Smell",
-                                                          "Floating Point Number As String Smell",
-                                                          "Integer As Floating Point Number Smell"], "Validity")
 
-        # Save detected smell to database
-        for key, value in sorted_results.items():
-            column1 = Column.objects.get(column_name=key, belonging_file=file1)
-            for v in value:
-                data_smell_t = SmellType.objects.get(smell_type=v.data_smell_type.value)
-                DetectedSmell.objects.create(data_smell_type=data_smell_t,
-                                             total_element_count=v.statistics.total_element_count,
-                                             faulty_element_count=v.statistics.faulty_element_count,
-                                             faulty_list=v.faulty_elements, belonging_column=column1)
+            # Save detected smell to database
+            for key, value in sorted_results.items():
+                column1 = Column.objects.get(column_name=key, belonging_file=file1)
+                for v in value:
+                    data_smell_t = SmellType.objects.get(smell_type=v.data_smell_type.value)
+                    DetectedSmell.objects.create(data_smell_type=data_smell_t,
+                                                 total_element_count=v.statistics.total_element_count,
+                                                 faulty_element_count=v.statistics.faulty_element_count,
+                                                 faulty_list=v.faulty_elements, belonging_column=column1)
+        else:
+            completeness_values['GLOBAL_Completeness'] = 100.00
+            uniqueness_values['GLOBAL_Uniqueness'] = 100.00
+            validity_values['GLOBAL_Validity'] = 100.00
 
-        # Save dataset metrics to database
+            # Save dataset metrics to database
         save_metric(file1, completeness_values, "Completeness")
         save_metric(file1, uniqueness_values, "Uniqueness")
         save_metric(file1, validity_values, "Validity")
+
+        context['global_comp'] = completeness_values['GLOBAL_Completeness']
+        context['global_uniq'] = uniqueness_values['GLOBAL_Uniqueness']
+        context['global_val'] = validity_values['GLOBAL_Validity']
 
     except Exception as e:
         print(e)

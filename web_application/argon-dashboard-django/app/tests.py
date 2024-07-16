@@ -224,6 +224,35 @@ class ParameterFormTest(TestCase):
         form = ParameterForm(data={'value': self.parameter.value}, instance=self.parameter)
         self.assertFalse(form.is_valid())
 
+class ComputeMetricTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='Testuser', password='test', first_name='Test', last_name='Test')
+        self.client.login(username='Testuser', password='test')
+        self.group1 = Group(group_name='Group test')
+        self.group1.save()
+        self.file1 = File(file_name='input_TC_01_CR_02.csv', user=self.user, uploaded_time=datetime.now(), group_name= self.group1)
+        self.file1.save()
+
+        self.column1 = Column(column_name='column', belonging_file=self.file1)
+        self.column1.save()
+
+        self.metric_type1 = MetricType(metric_type='Completeness')
+        self.metric_type1.save()
+        self.metric_type2 = MetricType(metric_type='Uniqueness')
+        self.metric_type2.save()
+        self.metric_type3 = MetricType(metric_type='Validity')
+        self.metric_type3.save()
+        self.factory = RequestFactory()
+
+    def test_no_faulty_element(self):
+        request = self.factory.get(reverse('result'))
+        request.user = self.user
+        response = result(request)
+        self.assertEqual(response.context_data['global_comp'], 100.00)
+        self.assertEqual(response.context_data['global_uniq'], 100.00)
+        self.assertEqual(response.context_data['global_val'], 100.00)
+
+
 
     
 
