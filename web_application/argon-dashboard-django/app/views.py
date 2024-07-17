@@ -31,13 +31,13 @@ from datasmelldetection.detectors.great_expectations.expectations import \
 from django.contrib import messages
 
 # Different smells by its category
-with open(SMELL_FOLDER + 'smells.json') as json_file:
+with open(SMELL_FOLDER + 'json/smells.json') as json_file:
     data = json.load(json_file)
 
-with open(SMELL_FOLDER + 'presettings.json') as json_file:
+with open(SMELL_FOLDER + 'json/presettings.json') as json_file:
     presettings_smells = json.load(json_file)
 
-with open(SMELL_FOLDER + 'doc.json') as json_file:
+with open(SMELL_FOLDER + 'json/doc.json') as json_file:
     doc_file = json.load(json_file)
 
 all_smells = {i: {DataSmellType(a): b for a, b in j.items()} for i, j in data.items()}

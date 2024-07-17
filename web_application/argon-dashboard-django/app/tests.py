@@ -25,7 +25,7 @@ LIBRARY_DIR = Path(__file__).parent.parent.parent.parent
 CORE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 settings_dir = os.path.dirname(__file__)
 PROJECT_ROOT = os.path.abspath(os.path.dirname(settings_dir))
-SMELL_FOLDER = os.path.join(PROJECT_ROOT, 'app/')
+SMELL_FOLDER = os.path.join(PROJECT_ROOT, 'app/test_sets/')
 
 cwd = os.getcwd()
 sys.path.append(LIBRARY_DIR+"/data_smell_detection/")
@@ -73,7 +73,7 @@ class ViewsTest(TestCase):
         self.client.login(username='Testuser', password='test')
         self.group1 = Group(group_name='Group test')
         self.group1.save()
-        self.file1 = File(file_name='test.csv', user=self.user, uploaded_time=datetime.now(), group_name= self.group1)
+        self.file1 = File(file_name='test_sets/test.csv', user=self.user, uploaded_time=datetime.now(), group_name= self.group1)
         self.file1.save()
 
         self.column1 = Column(column_name='Age', belonging_file=self.file1)

@@ -8,3 +8,4 @@ pytest
 coverage
 mypy
 dataclasses
+nbformat
