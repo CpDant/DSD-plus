@@ -22,9 +22,9 @@
              <div class="nav-wrapper-doc">
                  <ul class="nav nav-pills nav-fill flex-column flex-md-row" id="files-icons-text" role="tablist">
                      {% for f in results.keys %}
-                         <li class="nav-item">
-                             <a class="nav-link mb-sm-3 mb-md-0" id="file-{{ forloop.counter }}-tab" data-toggle="tab" href="#file-{{ forloop.counter }}" role="tab" aria-selected="false">{{ f }}.csv</a>
-                         </li>
+                             <li class="nav-item">
+                                 <a class="nav-link mb-sm-3 mb-md-0" id="file-{{ forloop.counter }}-tab" data-toggle="tab" href="#file-{{ forloop.counter }}" role="tab" aria-selected="false">{{ f }}.csv</a>
+                             </li>
                      {% endfor %}
                  </ul>
              </div>
@@ -284,7 +284,7 @@
             let completeness_data_name = "#completeness-data-" + filename;
             let completeness_data = $(completeness_data_name).text();
             let dataset = JSON.parse(completeness_data.replaceAll("\'", "\""));
-            delete dataset.GLOBAL_Completness;
+            delete dataset.GLOBAL_Completeness;
 
             const colors = [];
             for (let i = 0; i < Object.keys(dataset).length; i++) {

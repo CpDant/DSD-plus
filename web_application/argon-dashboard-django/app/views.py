@@ -1,3 +1,4 @@
+import pandas as pd
 from django.template.defaulttags import register
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
@@ -6,6 +7,7 @@ from django.http import HttpResponse, JsonResponse
 from django import template
 from django.template.response import TemplateResponse
 from django.core.files.storage import FileSystemStorage
+from pandas.errors import EmptyDataError
 
 from .forms import ParameterForm
 import os
@@ -88,61 +90,73 @@ def upload(request):
     if request.method == 'POST' and 'upload' in request.FILES:
         uploaded_file = request.FILES['upload']
 
-        if request.POST['input-group-name'] != "DEFAULT":
-            group_name = request.POST['input-group-name']
-        else:
-            group_name = request.POST['group-selector']
+        group_name = request.POST['input-group-name']
 
         if '.csv' in uploaded_file.name:
-            fs = FileSystemStorage()
-            file_name = fs.save(uploaded_file.name, uploaded_file)
-            context['url'] = fs.url(file_name)
-            context['size'] = fs.size(file_name) / 1000000
+            df = None
 
-            group = Group(group_name=group_name)
-            group.save()
+            try:
+                df = pd.read_csv(uploaded_file)
+                df.dropna(how='all', axis=1, inplace=True)
+                empty = df.empty
+            except EmptyDataError:
+                empty = True
 
-            # Save file to database
-            file1 = File(file_name=file_name, user=request.user, group_name_id=group_name)
-            file1.save()
+            if not empty:
+                fs = FileSystemStorage()
+                file_name = fs.save(uploaded_file.name, uploaded_file)
 
-            dataset = manager.get_dataset(file_name)
-            detector = DetectorBuilder(context=con, dataset=dataset).build()
+                group = Group(group_name=group_name)
+                group.save()
 
-            register_new_smells(detector)
+                # Save file to database
+                file1 = File(file_name=file_name, user=request.user, group_name_id=group_name)
+                file1.save()
 
-            supported_smells = detector.get_supported_data_smell_types()
+                dataset = manager.get_dataset(file_name)
 
-            # Save supported smell to database
-            for s in supported_smells:
-                smell = SmellType(smell_type=s.value)
-                smell.save()
-                smell.belonging_file.add(file1)
+                context['url'] = fs.url(file_name)
+                context['size'] = fs.size(file_name) / 1000000
 
-                # Save parameters for smells
-                parameters = believability_smells.get(s) or syntactic_understandability_smells.get(
-                    s) or encoding_understandability_smells.get(s) or consistency_smells.get(s)
-                if parameters is not None:
-                    for p, v in parameters.items():
-                        if v["max"] != "inf":
-                            par = Parameter(name=p, value=presettings_smells["tolerant"][s.value][p],
-                                            belonging_smell=smell, belonging_file=file1, min_value=v["min"],
-                                            max_value=v["max"])
-                        else:
-                            par = Parameter(name=p, value=presettings_smells["tolerant"][s.value][p],
-                                            belonging_smell=smell, belonging_file=file1, min_value=v["min"],
-                                            max_value=-1)
-                        par.save()
+                detector = DetectorBuilder(context=con, dataset=dataset).build()
 
-            # Save columns to database
-            columns = precheck_columns(dataset.get_column_names())
-            for c in columns:
-                Column.objects.create(column_name=c, belonging_file=file1)
+                register_new_smells(detector)
 
-            # Save implemented metrics to database
-            MetricType(metric_type="Completeness").save()
-            MetricType(metric_type="Uniqueness").save()
-            MetricType(metric_type="Validity").save()
+                supported_smells = detector.get_supported_data_smell_types()
+
+                # Save supported smell to database
+                for s in supported_smells:
+                    smell = SmellType(smell_type=s.value)
+                    smell.save()
+                    smell.belonging_file.add(file1)
+
+                    # Save parameters for smells
+                    parameters = believability_smells.get(s) or syntactic_understandability_smells.get(
+                        s) or encoding_understandability_smells.get(s) or consistency_smells.get(s)
+                    if parameters is not None:
+                        for p, v in parameters.items():
+                            if v["max"] != "inf":
+                                par = Parameter(name=p, value=presettings_smells["tolerant"][s.value][p],
+                                                belonging_smell=smell, belonging_file=file1, min_value=v["min"],
+                                                max_value=v["max"])
+                            else:
+                                par = Parameter(name=p, value=presettings_smells["tolerant"][s.value][p],
+                                                belonging_smell=smell, belonging_file=file1, min_value=v["min"],
+                                                max_value=-1)
+                            par.save()
+
+                # Save columns to database
+                columns = precheck_columns(dataset.get_column_names())
+                for c in columns:
+                    Column.objects.create(column_name=c, belonging_file=file1)
+
+                # Save implemented metrics to database
+                MetricType(metric_type="Completeness").save()
+                MetricType(metric_type="Uniqueness").save()
+                MetricType(metric_type="Validity").save()
+            else:
+                context['message'] = 'Upload a non empty .csv file.'
+                del df
 
         else:
             # Message if unsupported datatype was uploaded
@@ -372,37 +386,32 @@ def result(request):
         context['results'] = sorted_results
         context['file'] = file1.file_name
 
-        if len(sorted_results) != 0:
-            # compute metrics for the dataset and columns
-            completeness_values = compute_metric(sorted_results, ["Missing Value Smell"], "Completeness")
-            uniqueness_values = compute_metric(sorted_results, ["Duplicated Value Smell"], "Uniqueness")
-            validity_values = compute_metric(sorted_results, ["Integer As String Smell",
-                                                              "Floating Point Number As String Smell",
-                                                              "Integer As Floating Point Number Smell"], "Validity")
+        # compute metrics for the dataset and columns
+        completeness_values = compute_metric(sorted_results, column_names, ["Missing Value Smell"], "Completeness")
+        uniqueness_values = compute_metric(sorted_results, column_names, ["Duplicated Value Smell"], "Uniqueness")
+        validity_values = compute_metric(sorted_results, column_names, ["Integer As String Smell",
+                                                                        "Floating Point Number As String Smell",
+                                                                        "Integer As Floating Point Number Smell"],
+                                         "Validity")
 
+        # Save detected smell to database
+        for key, value in sorted_results.items():
+            column1 = Column.objects.get(column_name=key, belonging_file=file1)
+            for v in value:
+                data_smell_t = SmellType.objects.get(smell_type=v.data_smell_type.value)
+                DetectedSmell.objects.create(data_smell_type=data_smell_t,
+                                             total_element_count=v.statistics.total_element_count,
+                                             faulty_element_count=v.statistics.faulty_element_count,
+                                             faulty_list=v.faulty_elements, belonging_column=column1)
 
-            # Save detected smell to database
-            for key, value in sorted_results.items():
-                column1 = Column.objects.get(column_name=key, belonging_file=file1)
-                for v in value:
-                    data_smell_t = SmellType.objects.get(smell_type=v.data_smell_type.value)
-                    DetectedSmell.objects.create(data_smell_type=data_smell_t,
-                                                 total_element_count=v.statistics.total_element_count,
-                                                 faulty_element_count=v.statistics.faulty_element_count,
-                                                 faulty_list=v.faulty_elements, belonging_column=column1)
-        else:
-            completeness_values['GLOBAL_Completeness'] = 100.00
-            uniqueness_values['GLOBAL_Uniqueness'] = 100.00
-            validity_values['GLOBAL_Validity'] = 100.00
-
-            # Save dataset metrics to database
+        # Save dataset metrics to database
         save_metric(file1, completeness_values, "Completeness")
         save_metric(file1, uniqueness_values, "Uniqueness")
         save_metric(file1, validity_values, "Validity")
 
-        context['global_comp'] = completeness_values['GLOBAL_Completeness']
-        context['global_uniq'] = uniqueness_values['GLOBAL_Uniqueness']
-        context['global_val'] = validity_values['GLOBAL_Validity']
+        context['global_comp_test'] = completeness_values['GLOBAL_Completeness']
+        context['global_uniq_test'] = uniqueness_values['GLOBAL_Uniqueness']
+        context['global_val_test'] = validity_values['GLOBAL_Validity']
 
     except Exception as e:
         print(e)
@@ -424,13 +433,8 @@ def saved(request):
     # Some presettings for data smell detection
     context = {}
     groups = Group.objects.all()
-    files = File.objects.all().filter(user_id=request.user.id)
-    user_groups = set()
-    for g in groups:
-        for f in files:
-            if f.group_name_id == g.group_name: user_groups.add(g)
 
-    context['groups'] = list(user_groups)
+    context['groups'] = list(groups)
     return TemplateResponse(request, 'saved-results.html', context)
 
 
@@ -455,10 +459,6 @@ def file_smells(request):
             all_smells_for_file.extend(list(DetectedSmell.objects.all().filter(belonging_column=c)))
 
         sorted_results = {}
-        # Delete files which do not have any detected smells
-        if not all_smells_for_file:
-            File.objects.get(file_name=f.file_name).delete()
-            continue
 
         # Create dict for overall results
         smell_dict = {}
