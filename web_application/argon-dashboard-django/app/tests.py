@@ -230,12 +230,6 @@ class ComputeMetricTest(TestCase):
         self.client.login(username='Testuser', password='test')
         self.group1 = Group(group_name='Group test')
         self.group1.save()
-        self.file1 = File(file_name='input_TC_01_CR_02.csv', user=self.user, uploaded_time=datetime.now(), group_name= self.group1)
-        self.file1.save()
-
-        self.column1 = Column(column_name='column', belonging_file=self.file1)
-        self.column1.save()
-
         self.metric_type1 = MetricType(metric_type='Completeness')
         self.metric_type1.save()
         self.metric_type2 = MetricType(metric_type='Uniqueness')
@@ -243,16 +237,104 @@ class ComputeMetricTest(TestCase):
         self.metric_type3 = MetricType(metric_type='Validity')
         self.metric_type3.save()
         self.factory = RequestFactory()
-
     def test_no_faulty_element(self):
         request = self.factory.get(reverse('result'))
         request.user = self.user
+        self.file1 = File(file_name='input_TC_01_CR_02.csv', user=self.user, uploaded_time=datetime.now(), group_name= self.group1)
+        self.file1.save()
+        self.column1 = Column(column_name='column', belonging_file=self.file1)
+        self.column1.save()
         response = result(request)
-        self.assertEqual(response.context_data['global_comp'], 100.00)
-        self.assertEqual(response.context_data['global_uniq'], 100.00)
-        self.assertEqual(response.context_data['global_val'], 100.00)
+        self.assertEqual(100.00, response.context_data['global_comp_test'])
+        self.assertEqual(100.00, response.context_data['global_uniq_test'])
+        self.assertEqual(100.00, response.context_data['global_val_test'])
 
+    def test_completeness(self):
+        request = self.factory.get(reverse('result'))
+        request.user = self.user
+        self.file1 = File(file_name='input_TC_02_CR_02.csv', user=self.user, uploaded_time=datetime.now(), group_name= self.group1)
+        self.file1.save()
+        self.column1 = Column(column_name='column', belonging_file=self.file1)
+        self.column1.save()
+        self.smell_type1 = SmellType(smell_type='Missing Value Smell')
+        self.smell_type1.save()
+        self.smell_type1.belonging_file.add(self.file1)
+        self.parameter1 = Parameter(name="mostly", min_value=0.0, max_value=1.0, value=1.0, belonging_smell=self.smell_type1, belonging_file=self.file1)
+        self.parameter1.save()
+        response = result(request)
+        self.assertEqual(80.00, response.context_data['global_comp_test'])
+        self.assertEqual(100.00, response.context_data['global_uniq_test'])
+        self.assertEqual(100.00, response.context_data['global_val_test'])
 
+    def test_uniqueness(self):
+        request = self.factory.get(reverse('result'))
+        request.user = self.user
+        self.file1 = File(file_name='input_TC_03_CR_02.csv', user=self.user, uploaded_time=datetime.now(), group_name= self.group1)
+        self.file1.save()
+        self.column1 = Column(column_name='column', belonging_file=self.file1)
+        self.column1.save()
+        self.smell_type1 = SmellType(smell_type='Duplicated Value Smell')
+        self.smell_type1.save()
+        self.smell_type1.belonging_file.add(self.file1)
+        self.parameter1 = Parameter(name="mostly", min_value=0.0, max_value=1.0, value=1.0, belonging_smell=self.smell_type1, belonging_file=self.file1)
+        self.parameter1.save()
+        response = result(request)
+        self.assertEqual(100.00, response.context_data['global_comp_test'])
+        self.assertEqual(40.00, response.context_data['global_uniq_test'])
+        self.assertEqual(100.00, response.context_data['global_val_test'])
+    def test_validity_with_int_value_as_string(self):
+        request = self.factory.get(reverse('result'))
+        request.user = self.user
+        self.file1 = File(file_name='input_TC_04_CR_02.csv', user=self.user, uploaded_time=datetime.now(), group_name= self.group1)
+        self.file1.save()
+        self.column1 = Column(column_name='column', belonging_file=self.file1)
+        self.column1.save()
+        self.smell_type1 = SmellType(smell_type='Integer As String Smell')
+        self.smell_type1.save()
+        self.smell_type1.belonging_file.add(self.file1)
+        self.parameter1 = Parameter(name="mostly", min_value=0.0, max_value=1.0, value=1.0, belonging_smell=self.smell_type1, belonging_file=self.file1)
+        self.parameter1.save()
+        response = result(request)
+        self.assertEqual(100.00, response.context_data['global_comp_test'])
+        self.assertEqual(100.00, response.context_data['global_uniq_test'])
+        self.assertEqual(90.00, response.context_data['global_val_test'])
 
+    def test_validity_with_int_value_as_float(self):
+        request = self.factory.get(reverse('result'))
+        request.user = self.user
+        self.file1 = File(file_name='input_TC_05_CR_02.csv', user=self.user, uploaded_time=datetime.now(), group_name= self.group1)
+        self.file1.save()
+        self.column1 = Column(column_name='column', belonging_file=self.file1)
+        self.column1.save()
+        self.smell_type1 = SmellType(smell_type='Integer As Floating Point Number Smell')
+        self.smell_type1.save()
+        self.smell_type1.belonging_file.add(self.file1)
+        self.parameter1 = Parameter(name="mostly", min_value=0.0, max_value=1.0, value=1.0, belonging_smell=self.smell_type1, belonging_file=self.file1)
+        self.parameter1.save()
+        self.parameter2 = Parameter(name="epsilon", min_value=0.0, max_value="inf", value=1e-6, belonging_smell=self.smell_type1, belonging_file=self.file1)
+        self.parameter2.save()
+        response = result(request)
+        self.assertEqual(100.00, response.context_data['global_comp_test'])
+        self.assertEqual(100.00, response.context_data['global_uniq_test'])
+        self.assertEqual(0.00, response.context_data['global_val_test']) #Qui il problema è che pandas fa il cast
+                                                                         #di tutte le componenti nel tipo float e
+                                                                         #dunque sarà sempre questo il comportamento
+
+    def test_validity_with_float_value_as_string(self):
+        request = self.factory.get(reverse('result'))
+        request.user = self.user
+        self.file1 = File(file_name='input_TC_06_CR_02.csv', user=self.user, uploaded_time=datetime.now(), group_name= self.group1)
+        self.file1.save()
+        self.column1 = Column(column_name='column', belonging_file=self.file1)
+        self.column1.save()
+        self.smell_type1 = SmellType(smell_type='Floating Point Number As String Smell')
+        self.smell_type1.save()
+        self.smell_type1.belonging_file.add(self.file1)
+        self.parameter1 = Parameter(name="mostly", min_value=0.0, max_value=1.0, value=1.0, belonging_smell=self.smell_type1, belonging_file=self.file1)
+        self.parameter1.save()
+        response = result(request)
+        self.assertEqual(100.00, response.context_data['global_comp_test'])
+        self.assertEqual(100.00, response.context_data['global_uniq_test'])
+        self.assertEqual(50.00, response.context_data['global_val_test'])
     
 
