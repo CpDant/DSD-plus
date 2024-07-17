@@ -1,32 +1,61 @@
-# Calculate global and single columns completeness
 from app.models import MetricType, ComputedMetric, Column
 
 
-def compute_metric(datasmells, involved_smells, metric_name):
+def compute_metric(datasmells, all_columns, involved_smells, metric_name):
     metric_map = {}
     global_elements, global_faulty_elements = 0, 0
+    detected_columns = []
+    not_detected_columns = []
 
-    total_rows, total_columns = 0, len(datasmells)
+    total_rows, total_columns = 0, len(all_columns)
 
-    for column, column_smells in datasmells.items():
-        for smell in column_smells:
-            total_rows = smell.statistics.total_element_count
+    # if there are datasmells you need to compute metrics
+    if len(datasmells) > 0:
+
+        # filter the names of the 'detected columns' (the ones that have at least one smell)
+        for column in datasmells.items():
+            detected_columns.append(column[0])
+
+        # filter the names of the 'non-detected columns'
+        for column in all_columns:
+            if column not in detected_columns:
+                not_detected_columns.append(column)
+
+        # compute the rows number by the element of a column
+        for column, column_smells in datasmells.items():
+            for smell in column_smells:
+                total_rows = smell.statistics.total_element_count
+                break
             break
-        break
 
-    for column, column_smells in datasmells.items():
-        for smell in column_smells:
-            if smell.data_smell_type.value in involved_smells:
-                metric = ((smell.statistics.total_element_count - smell.statistics.faulty_element_count) /
-                          smell.statistics.total_element_count) * 100
-                metric_map[column] = round(metric, 2)
+        # filter the 'detected column' for the involved smells needed in order to compute the metric
+        for column, column_smells in datasmells.items():
+            for smell in column_smells:
+                if smell.data_smell_type.value in involved_smells:
+                    metric = ((smell.statistics.total_element_count - smell.statistics.faulty_element_count) /
+                              smell.statistics.total_element_count) * 100
+                    metric_map[column] = round(metric, 2)
+                    global_faulty_elements += smell.statistics.faulty_element_count
+                else:
+                    # if a column does not any instances of the involved smell, the metric is automatically at 100%
+                    metric_map[column] = 100
 
-                global_faulty_elements += smell.statistics.faulty_element_count
+        # if the column is a 'not-detected' one, it means the metric is automatically at 100%
+        for column in not_detected_columns:
+            metric_map[column] = 100
 
-    global_elements = total_rows * total_columns
-    global_metric = ((global_elements - global_faulty_elements) / global_elements) * 100
-    metric_map[("GLOBAL_" + metric_name)] = round(global_metric, 2)
-    return metric_map
+        global_elements = total_rows * total_columns
+        global_metric = ((global_elements - global_faulty_elements) / global_elements) * 100
+        metric_map[("GLOBAL_" + metric_name)] = round(global_metric, 2)
+        return metric_map
+
+    else:
+        # if there aren't any 'detected columns', it means that all the columns are okay, metric is at 100%
+        for column in all_columns:
+            metric_map[column] = 100
+        metric_map[("GLOBAL_" + metric_name)] = 100
+        return metric_map
+
 
 
 def save_metric(file1, metric_values, metric_name):
