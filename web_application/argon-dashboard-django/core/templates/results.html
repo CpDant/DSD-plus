@@ -111,6 +111,7 @@
                <div class="card shadow">
                   <div class="card-body">
                      <div class="tab-content" id="myTabContent">
+                     {% if results.items %}
                         {% for column, value in results.items %}
                         <div class="tab-pane fade" id={{column}} role="tabpanel" aria-labelledby="tabs-icons-text-2-tab">
                            <p class="description"></p>
@@ -160,6 +161,9 @@
                            </div>
                         </div>
                         {% endfor %}
+                         {% else %}
+                         <p class="description">There are no smells for this dataset.</p>
+                         {% endif %}
                      </div>
                      <br><br>
                      {% endif %}
