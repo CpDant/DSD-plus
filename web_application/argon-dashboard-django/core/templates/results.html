@@ -98,6 +98,13 @@
                {% if not delete_message %}
                <h2>{{ file }}</h2>
                <br>
+                {% if results.items %}
+                    <div class="alert alert-success alert-dismissible fade show" id="msg-success" role="alert">
+                        <span class="alert-inner--icon"><i class="ni ni-like-2"></i></span>
+                        <span class="alert-inner--text"><strong>Success!</strong><br>Data smells have been found in your dataset.</span>
+                    </div>
+                {% endif %}
+               <br>
                <p>Click on the column you wish to view.<br>Only columns which have data smells are shown below.</p>
                <div class="nav-wrapper">
                   <ul class="nav nav-pills nav-fill flex-column flex-md-row" id="tabs-icons-text" role="tablist">
