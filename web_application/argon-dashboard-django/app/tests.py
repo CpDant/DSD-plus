@@ -316,9 +316,7 @@ class ComputeMetricTest(TestCase):
         response = result(request)
         self.assertEqual(100.00, response.context_data['global_comp_test'])
         self.assertEqual(100.00, response.context_data['global_uniq_test'])
-        self.assertEqual(0.00, response.context_data['global_val_test']) #Qui il problema è che pandas fa il cast
-                                                                         #di tutte le componenti nel tipo float e
-                                                                         #dunque sarà sempre questo il comportamento
+        self.assertEqual(50.00, response.context_data['global_val_test'])
 
     def test_validity_with_float_value_as_string(self):
         request = self.factory.get(reverse('result'))
