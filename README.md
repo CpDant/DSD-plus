@@ -1,5 +1,6 @@
 # Data Smell Detection +
-Repository fo the project made for Software Engineering for AI master degree course at [University of Salerno](https://www.unisa.it/).
+Repository of the project made for Software Engineering for Artificial Intelligence (SE4AI) and Software
+Engineering, Management and Evolution (IGES), two master degree courses at [University of Salerno](https://www.unisa.it/).
 
 <br/>
 <p align="center" style="border-radius:10px;"><img src="web_application/argon-dashboard-django/core/static/assets/img/brand/tuk5.png" width = "350vw"></p>
@@ -60,14 +61,14 @@ It is assumed that all the following steps are executed inside the root director
 ## Goals
 
 The main goals for this project are:
-* <b>Extension of the data smell detection suite</b>: At least one new data smell detector should
+* <b>CR_01 - Extension of the data smell detection suite</b>: At least one new data smell detector should
 be implemented to extend the detection suite that makes the tool available.
-* <b>Mechanism for calculating data quality dimension metrics</b>: Related to creating a mechanism for calculating a subset of data quality dimensions referring to the results obtained
+* <b>CR_02 - Mechanism for calculating data quality dimension metrics</b>: Related to creating a mechanism for calculating a subset of data quality dimensions referring to the results obtained
 from the tool’s analysis done on the specific dataset.
-* <b>Improved reporting system</b>: Add the ability to display on the screen the results obtained
+* <b>CR_03 - Improved reporting system</b>: Add the ability to display on the screen the results obtained
 from the analysis of a dataset and show over time the change in the dataset, related smells
 identified, and metrics/measures calculated.
 
-## Data Collection
-Datasets that were used for the real-worl simulation, were put in <a href="https://drive.google.com/drive/folders/1zbLlQ9Lg6o-Smvg7BMawz6uSr5otr5U0?usp=sharing">this</a> shared folder.
+## Data Collection and System Testing
+Datasets that were used for the real-world simulation and system testing, were put in <a href="https://drive.google.com/drive/folders/1zbLlQ9Lg6o-Smvg7BMawz6uSr5otr5U0?usp=sharing">this</a> shared folder.
 
